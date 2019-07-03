@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">second</string>
+    <string name="app_name">Second</string>
+    <string name="tab_text_1">Contact</string>
+    <string name="tab_text_2">Album</string>
+    <string name="tab_text_3">Widget</string>
+    <string name="icon">No Photo</string>
+    <string name="StringValue">이미지가 열리지 않습니다.</string>
 </resources>
