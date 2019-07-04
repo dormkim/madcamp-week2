@@ -8,11 +8,15 @@ public class ContactRecyclerItem implements Serializable {
     private Drawable iconDrawable;
     private String nameStr;
     private String phoneStr;
+    private String contentId;
     private long iconID, personID;
 
     public ContactRecyclerItem() {
     }
 
+    public void setContentId(String contentId){
+        this.contentId = contentId;
+    }
     public void setIcon(Drawable icon) {
         iconDrawable = icon;
     }
@@ -27,6 +31,10 @@ public class ContactRecyclerItem implements Serializable {
 
     public void setPhone(String desc) {
         phoneStr = desc;
+    }
+
+    public String getContentId(){
+        return this.contentId;
     }
 
     public Drawable getIcon() {

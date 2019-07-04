@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/module"
+        android:background="@drawable/tab1_contact_module"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".AddContact">
+
+    <EditText
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:text="NAME"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent" android:layout_marginTop="392dp"
+            app:layout_constraintHorizontal_bias="0.088"/>
+
+    <EditText
+            android:id="@+id/phone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#000000"
+            android:text="PHONE_NUMBER"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/name"
+            app:layout_constraintHorizontal_bias="0.823"
+            app:layout_constraintVertical_bias="0.064"/>
+
+    <ImageButton
+            android:id="@+id/icon"
+            android:layout_width="194dp"
+            android:layout_height="169dp"
+            android:src="@drawable/photo_icon"
+            android:onClick="onPhotoButtonClicked"
+            android:scaleType="centerInside"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintVertical_bias="0.318"/>
+
+    <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="60dp"
+            android:layout_height="70dp"
+            android:background="@android:color/transparent"
+            android:onClick="onBackButtonClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/back_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="16dp"/>
+
+    <ImageButton
+            android:id="@+id/save_button"
+            android:layout_width="60dp"
+            android:layout_height="70dp"
+            android:src="@drawable/save_button"
+            android:onClick="onAddButtonClicked"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

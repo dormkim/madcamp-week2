@@ -28,14 +28,15 @@
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
+        <activity
+                android:name=".AddContact">
+        </activity>
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:authorities="com.example.tabbed_activity.provider"
+                android:authorities="com.example.second.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data
