@@ -152,7 +152,7 @@ public class AddContact extends AppCompatActivity {
 
         try {
             getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-            Toast.makeText(getApplicationContext(), "연락처가 저장되었습니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "연락처가 저장되었습니다.", Toast.LENGTH_SHORT).show();
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (OperationApplicationException e) {

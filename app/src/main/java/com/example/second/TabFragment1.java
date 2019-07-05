@@ -48,11 +48,11 @@ public class TabFragment1 extends Fragment{
     private long now1;
     private long now7;
     private ArrayList<String> dbList = new ArrayList<>();
+    private ArrayList<Integer> selectList = new ArrayList<>();
     private static final int ADD_CONTACT = 1;
     private static final int SELECT_CONTACT = 2;
     private String Tag = "All";
 
-    //DB에 원래 전화번호 리스트를 모두 올림.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_1, container, false);
@@ -62,7 +62,7 @@ public class TabFragment1 extends Fragment{
     public void onResume(){
         super.onResume();
         mMyData = getContactList();
-        if(dbList.contains(Tag) == false) {
+        if (!dbList.contains(Tag)) {
             dbList.add(Tag);
             try {
                 all_contact = ArrListToJArr(mMyData, Tag);
@@ -70,7 +70,13 @@ public class TabFragment1 extends Fragment{
                 e.printStackTrace();
             }
             new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/contacts/initialize");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+
 
         mRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler);
         mRecyclerView.setHasFixedSize(true);
@@ -105,6 +111,7 @@ public class TabFragment1 extends Fragment{
                     now7 = System.currentTimeMillis();
                     if((now7 - now1)/1000.0 < 5) {
                         Intent intent = new Intent(getActivity(), SelectContact.class);
+                        intent.putExtra("tagName", Tag);
                         intent.putExtra("dbList", dbList);
                         startActivityForResult(intent, SELECT_CONTACT);
                     }
@@ -127,50 +134,46 @@ public class TabFragment1 extends Fragment{
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode == Activity.RESULT_OK){
             switch (requestCode) {
-                //연락처에 저장하는 클래스로 넘어가서 전화번호 정보를 받아와 mMyData에 추가하고 DB에 추가
-                case ADD_CONTACT:
-                    Drawable drawable;
-                    String name = data.getStringExtra("contact_name");
-                    String number = data.getStringExtra("contact_phone");
-                    String photo = data.getStringExtra("contact_uri");
+            //연락처에 저장하는 클래스로 넘어가서 전화번호 정보를 받아와 mMyData에 추가하고 DB에 추가
+            case ADD_CONTACT:
+                Drawable drawable;
+                String name = data.getStringExtra("contact_name");
+                String number = data.getStringExtra("contact_phone");
+                String photo = data.getStringExtra("contact_uri");
 
-                    ContactRecyclerItem contactItem = new ContactRecyclerItem();
-                    contactItem.setName(name);
-                    contactItem.setPhone(number);
+                ContactRecyclerItem contactItem = new ContactRecyclerItem();
+                contactItem.setName(name);
+                contactItem.setPhone(number);
 
-                    Bitmap bm = null;
-                    try {
-                        if (photo != null) {
-                            bm = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), Uri.parse(photo));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                Bitmap bm = null;
+                try {
+                    if (photo != null) {
+                        bm = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), Uri.parse(photo));
                     }
-                    if (bm == null)
-                        drawable = getResources().getDrawable(R.drawable.photo_icon);
-                    else {
-                        Bitmap resize_bm = resizingBitmap(bm);
-                        drawable = new BitmapDrawable(getResources(), resize_bm);
-                    }
-                    contactItem.setIcon(drawable);
-                    mMyData.add(contactItem);
-                    try {
-                        addContact(contactItem);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (bm == null)
+                    drawable = getResources().getDrawable(R.drawable.photo_icon);
+                else {
+                    Bitmap resize_bm = resizingBitmap(bm);
+                    drawable = new BitmapDrawable(getResources(), resize_bm);
+                }
+                contactItem.setIcon(drawable);
+                mMyData.add(contactItem);
+                try {
+                    addContact(contactItem);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                break;
 
-                case SELECT_CONTACT:
-                    String dbTag = data.getStringExtra("Tagname");
-                    Log.i("Success","string : "+dbTag);
-                    if (dbList.contains(dbTag) == false) {
-                        dbList.add(dbTag);
-                        Tag = dbTag;
-                        /*Post Tag and 연락처 수정(갈아엎기) DB선택*/
-                    }
-                    /*GET dbTag*/
-                    //연락처 리셋 후 DB정보를 받아와 연락처에 저장한 후 리사이클러뷰에 띄워준다.
+            case SELECT_CONTACT:
+                String dbTag = data.getStringExtra("Tagname");
+                Log.i("Success","string : "+dbTag);
+                if(!Tag.equals(dbTag)) {
+                    Tag=dbTag;
+                }
             }
         }
     }
@@ -188,9 +191,34 @@ public class TabFragment1 extends Fragment{
         sObj.put("name", contactItem.getName());
         sObj.put("phonenumber", contactItem.getPhone());
         sObj.put("icon",str);
+        sObj.put("contact_id",contactItem.getContactId());
         sObj.put("tag", Tag);
         add_Contact = sObj;
         new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts");
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if(!Tag.equals("All")){
+
+            JSONObject Obj = new JSONObject();
+            Obj.put("name", contactItem.getName());
+            Obj.put("phonenumber", contactItem.getPhone());
+            Obj.put("icon",str);
+            Obj.put("contact_id",contactItem.getContactId());
+            Obj.put("tag", "All");
+            add_Contact = Obj;
+            new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts");
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     //Delete Contact 하고 DB에서 지움
@@ -409,84 +437,6 @@ public class TabFragment1 extends Fragment{
         }
     }
 
-    public class JSONTaskGet extends AsyncTask<String, String, String> {
-        @Override
-        protected String doInBackground(String urls[]) {
-            try {
-                HttpURLConnection con = null;
-                BufferedReader reader = null;
-
-                try {
-                    URL url = new URL(urls[0]);//url을 가져온다.
-                    con = (HttpURLConnection) url.openConnection();
-                    con.connect();//연결 수행
-
-                    //입력 스트림 생성
-                    InputStream stream = con.getInputStream();
-
-                    //속도를 향상시키고 부하를 줄이기 위한 버퍼를 선언한다.
-                    reader = new BufferedReader(new InputStreamReader(stream));
-
-                    //실제 데이터를 받는곳
-                    StringBuffer buffer = new StringBuffer();
-
-                    //line별 스트링을 받기 위한 temp 변수
-                    String line = "";
-
-                    //아래라인은 실제 reader에서 데이터를 가져오는 부분이다. 즉 node.js서버로부터 데이터를 가져온다.
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line);
-                    }
-                    //다 가져오면 String 형변환을 수행한다. 이유는 protected String doInBackground(String... urls) 니까
-                    parseJsonData(buffer.toString());
-                    return buffer.toString();
-
-                    //아래는 예외처리 부분이다.
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    //종료가 되면 disconnect메소드를 호출한다.
-                    if (con != null) {
-                        con.disconnect();
-                    }
-                    try {
-                        //버퍼를 닫아준다.
-                        if (reader != null) {
-                            reader.close();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }//finally 부분
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    private void parseJsonData(String jsonResponse){
-        try
-        {
-            JSONObject jsonObject = new JSONObject(jsonResponse);
-            JSONArray jsonArray = (JSONArray) jsonObject.get("phonenumbers");
-
-            for(int i=0;i<jsonArray.length();i++)
-            {
-                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                String value3 = jsonObject1.getString("icon");
-                byte[] temp = Base64.decode(value3);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(temp, 0, temp.length);
-            }
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     //연락처를 Array 형태로 만들어서 Tag를 추가함
     public JSONArray ArrListToJArr(ArrayList<ContactRecyclerItem> arrList, String dbTag) throws JSONException {
 
@@ -507,6 +457,7 @@ public class TabFragment1 extends Fragment{
             sObj.put("name", contactItem.getName());
             sObj.put("phonenumber", contactItem.getPhone());
             sObj.put("icon",str);
+            sObj.put("contact_id",contactItem.getContactId());
             sObj.put("tag", dbTag);
             jArray.put(sObj);
         }

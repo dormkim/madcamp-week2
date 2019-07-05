@@ -1,6 +1,13 @@
 package com.example.second;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,12 +15,21 @@ import android.os.Bundle;
 import android.view.View;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 public class SelectContact extends AppCompatActivity {
 
+    private String original_Tagname = null;
     private String Tagname = null;
     private TextView selected_item_textview;
+    private int SELECT_CONTACT_ON_DB = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +49,7 @@ public class SelectContact extends AppCompatActivity {
         //데이터를 저장하게 되는 리스트
         final List<String> list;
         list = intent.getStringArrayListExtra("dbList");
+        original_Tagname = intent.getStringExtra("tagName");
 
         //리스트뷰와 리스트를 연결하기 위해 사용되는 어댑터
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
@@ -54,8 +71,8 @@ public class SelectContact extends AppCompatActivity {
                         if(position > 0 && position < list.size()) {
                             list.remove(position);
                             listview.clearChoices();
-                            Tagname = null;
                             selected_item_textview.setText("아래 목록에서 선택하세요!");
+                            tagDelete();
                             adapter.notifyDataSetChanged();
                         }
                         else if(position == 0){
@@ -71,12 +88,12 @@ public class SelectContact extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String name = saveName.getText().toString();
-                if(list.contains(name) == false) {
+                if(!list.contains(name) && name != null) {
                     list.add(name);
                     adapter.notifyDataSetChanged();
                 }
                 else{
-                    Toast.makeText(getApplicationContext(),"중복된 항목은 추가할 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"중복된 항목이나 빈 항목은 추가할 수 없습니다.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -85,16 +102,101 @@ public class SelectContact extends AppCompatActivity {
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(Tagname != null){
+                if(original_Tagname.equals(Tagname)){
                     Intent intent = new Intent();
                     intent.putExtra("Tagname", Tagname);
                     setResult(RESULT_OK, intent);
                     finish();
+                }
+                else if(Tagname != null){
+                    Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
+                    selectIntent.putExtra("contacts",getIntent().getData());
+                    startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
                 }
                 else{
                     Toast.makeText(getApplicationContext(), "항목을 선택하세요", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(resultCode == Activity.RESULT_OK) {
+            Intent intent = new Intent();
+            intent.putExtra("Tagname", Tagname);
+            setResult(RESULT_OK, intent);
+            finish();
+        }
+    }
+
+    public void tagDelete(){
+        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag"+Tagname);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Tagname = null;
+    }
+
+    //하나의 contact 삭제
+    public class JSONTaskDeleteObj extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String urls[]) {
+            try {
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);
+                    //연결을 함
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("DELETE");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");//application JSON 형식으로 전송
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 부터 데이터를 받음
+                    InputStream stream = con.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    StringBuffer buffer = new StringBuffer();
+
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+
+                    return buffer.toString();//서버로 부터 받은 값을 리턴해줌 아마 OK!!가 들어올것임
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();//버퍼를 닫아줌
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+        }
     }
 }
