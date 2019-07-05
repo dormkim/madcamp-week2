@@ -15,10 +15,11 @@
             android:layout_height="wrap_content"
             android:textColor="#000000"
             android:textSize="24sp"
-            android:text="NAME"
+            android:hint="NAME"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent" android:layout_marginTop="392dp"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginTop="392dp"
             app:layout_constraintHorizontal_bias="0.088"/>
 
     <EditText
@@ -27,7 +28,7 @@
             android:layout_height="wrap_content"
             android:textSize="24sp"
             android:textColor="#000000"
-            android:text="PHONE_NUMBER"
+            android:hint="PHONE_NUMBER"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"

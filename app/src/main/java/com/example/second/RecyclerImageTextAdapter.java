@@ -99,7 +99,6 @@ public class RecyclerImageTextAdapter extends RecyclerView.Adapter<RecyclerImage
                         @Override
                         public void onClick(View view) {
                             mListener.onItemClick(view, position, -1);
-                            //holder.mView.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mData.get(position).getContentId(), null);
                             holder.btn_delete.setVisibility(View.GONE);
                         }
                     });

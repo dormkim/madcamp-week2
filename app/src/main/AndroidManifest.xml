@@ -35,6 +35,10 @@
         <activity
                 android:name=".AddContact">
         </activity>
+
+        <activity
+                android:name=".SelectContact">
+        </activity>
         <provider
                 android:name="androidx.core.content.FileProvider"
                 android:authorities="com.example.second.provider"

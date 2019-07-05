@@ -10,7 +10,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -18,8 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.Button;
-import android.widget.ImageView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -45,39 +42,36 @@ public class TabFragment1 extends Fragment{
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<ContactRecyclerItem> mMyData;
     private View view;
-    private JSONObject all_contact;
-    private Button posttest;
-    private Button gettest;
-    private ImageView test;
+    private JSONObject add_Contact;
+    private JSONArray all_contact;
+    private int mCount = 0;
+    private long now1;
+    private long now7;
+    private ArrayList<String> dbList = new ArrayList<>();
     private static final int ADD_CONTACT = 1;
+    private static final int SELECT_CONTACT = 2;
+    private String Tag = "All";
 
+    //DB에 원래 전화번호 리스트를 모두 올림.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_1, container, false);
-        mMyData = getContactList();
-        all_contact = ArrListToJObj(mMyData, "All");
-        posttest = (Button) view.findViewById(R.id.postTest);
-        gettest = (Button) view.findViewById(R.id.getTest);
-
-        posttest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTaskPost().execute("http://143.248.38.46:8080/api/contacts");
-            }
-        });
-
-        gettest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/5d1e4c13e1af7459d4a22059");
-            }
-        });
-
         return view;
     }
     @Override
     public void onResume(){
         super.onResume();
+        mMyData = getContactList();
+        if(dbList.contains(Tag) == false) {
+            dbList.add(Tag);
+            try {
+                all_contact = ArrListToJArr(mMyData, Tag);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/contacts/initialize");
+        }
+
         mRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler);
         mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
@@ -98,6 +92,29 @@ public class TabFragment1 extends Fragment{
             }
         });
 
+        mCount = 0;
+        FloatingActionButton btn_change = view.findViewById(R.id.btn_change);
+        btn_change.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCount++;
+                if(mCount == 1){
+                    now1 = System.currentTimeMillis();
+                }
+                if(mCount > 6){
+                    now7 = System.currentTimeMillis();
+                    if((now7 - now1)/1000.0 < 5) {
+                        Intent intent = new Intent(getActivity(), SelectContact.class);
+                        intent.putExtra("dbList", dbList);
+                        startActivityForResult(intent, SELECT_CONTACT);
+                    }
+                    else{
+                        mCount = 0;
+                    }
+                }
+            }
+        });
+
         mAdapter.setOnItemClickListener(new RecyclerImageTextAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int request_code) {
@@ -108,9 +125,10 @@ public class TabFragment1 extends Fragment{
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
-        switch (requestCode){
-            case ADD_CONTACT:
-                if(resultCode == Activity.RESULT_OK){
+        if(resultCode == Activity.RESULT_OK){
+            switch (requestCode) {
+                //연락처에 저장하는 클래스로 넘어가서 전화번호 정보를 받아와 mMyData에 추가하고 DB에 추가
+                case ADD_CONTACT:
                     Drawable drawable;
                     String name = data.getStringExtra("contact_name");
                     String number = data.getStringExtra("contact_phone");
@@ -122,13 +140,13 @@ public class TabFragment1 extends Fragment{
 
                     Bitmap bm = null;
                     try {
-                        if(photo != null) {
+                        if (photo != null) {
                             bm = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), Uri.parse(photo));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if(bm == null)
+                    if (bm == null)
                         drawable = getResources().getDrawable(R.drawable.photo_icon);
                     else {
                         Bitmap resize_bm = resizingBitmap(bm);
@@ -136,153 +154,64 @@ public class TabFragment1 extends Fragment{
                     }
                     contactItem.setIcon(drawable);
                     mMyData.add(contactItem);
-                    //JSON Object으로 만들어서 DB에 올림
-                }
-                break;
-        }
-    }
+                    try {
+                        addContact(contactItem);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    break;
 
-    /*처음으로 화면이 켜질때 전체 리스트를 DB에 올림(ALL_Contacts)*/
-    public JSONObject ArrListToJObj(ArrayList<ContactRecyclerItem> arrList, String name){
-        JSONObject obj = new JSONObject();
-        try{
-            JSONArray jArray = new JSONArray();
-            for(int i=0; i<arrList.size(); i++){
-
-                ContactRecyclerItem contactItem;
-                contactItem = arrList.get(i);
-
-                Drawable temp = contactItem.getIcon();
-                Bitmap bitmap = ((BitmapDrawable)temp).getBitmap();
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                byte[] bitmapdata = stream.toByteArray();
-                String str = Base64.encode(bitmapdata);
-
-                JSONObject sObj = new JSONObject();
-                sObj.put("name", contactItem.getName());
-                sObj.put("phonenumber", contactItem.getPhone());
-                sObj.put("bitmapInfo",str);
-                //sObj.put("iconID", contactItem.getPhone());
-                //sObj.put("pID", contactItem.getPersonID());
-                //sObj.put("contactID",contactItem.getContentId());
-                //sObj.put("iconDrawable", contactItem.getIcon());
-                jArray.put(sObj);
+                case SELECT_CONTACT:
+                    String dbTag = data.getStringExtra("Tagname");
+                    Log.i("Success","string : "+dbTag);
+                    if (dbList.contains(dbTag) == false) {
+                        dbList.add(dbTag);
+                        Tag = dbTag;
+                        /*Post Tag and 연락처 수정(갈아엎기) DB선택*/
+                    }
+                    /*GET dbTag*/
+                    //연락처 리셋 후 DB정보를 받아와 연락처에 저장한 후 리사이클러뷰에 띄워준다.
             }
-            obj.put("name", name);
-            obj.put("phonenumber", jArray);
-
-        }catch (JSONException e){
-            e.printStackTrace();
         }
-        return obj;
     }
 
+    /*Add Contact 하고 DB에 올림*/
+    private void addContact(ContactRecyclerItem contactItem) throws JSONException {
+        Drawable temp = contactItem.getIcon();
+        Bitmap bitmap = ((BitmapDrawable)temp).getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] bitmapdata = stream.toByteArray();
+        String str = Base64.encode(bitmapdata);
 
-     public ArrayList<ContactRecyclerItem> getContactList(){
-         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-         String[] projection = new String[]{
-                 ContactsContract.CommonDataKinds.Phone.NUMBER,
-                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                 ContactsContract.Contacts.PHOTO_ID,
-                 ContactsContract.Contacts._ID,
-                 ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-         };
-         String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
-         Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, sortOrder);
-         ArrayList<ContactRecyclerItem> contactItems = new ArrayList<>();
-         if(cursor.moveToFirst()){
-             do{
-                 Drawable drawable;
-                 long photo_id = cursor.getLong(2);
-                 long person_id = cursor.getLong(3);
-                 String contact_id = cursor.getString(4);
-                 ContactRecyclerItem contactItem = new ContactRecyclerItem();
-                 contactItem.setName(cursor.getString(1));
-                 contactItem.setPhone(cursor.getString(0));
-                 contactItem.setIconID(photo_id);
-                 contactItem.setPersonID(person_id);
-                 contactItem.setContentId(contact_id);
-                 Bitmap bm = loadContactPhoto(getActivity().getContentResolver(), contactItem.getPersonID(), contactItem.getIconID());
-                 if(bm == null)
-                     drawable = getResources().getDrawable(R.drawable.photo_icon);
-                 else {
-                     drawable = new BitmapDrawable(getResources(), bm);
-                 }
-                 contactItem.setIcon(drawable);
-                 contactItems.add(contactItem);
-             }while (cursor.moveToNext());
-         }
-         return contactItems;
-     }
-
-    public Bitmap loadContactPhoto(ContentResolver cr, long id, long photo_id){
-        Uri uri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id);
-        InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, uri);
-        if(input != null)
-            return resizingBitmap(BitmapFactory.decodeStream(input));
-
-        byte[] photoBytes = null;
-        Uri photoUri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photo_id);
-        Cursor c = cr.query(photoUri, new String[]{ContactsContract.CommonDataKinds.Photo.PHOTO}, null, null,null);
-        try {
-            if (c.moveToFirst())
-                photoBytes = c.getBlob(0);
-        } catch(Exception e){
-            e.printStackTrace();
-        }finally {
-            c.close();
-        }
-
-        if(photoBytes != null)
-            return resizingBitmap(BitmapFactory.decodeByteArray(photoBytes, 0, photoBytes.length));
-
-        return null;
+        JSONObject sObj = new JSONObject();
+        sObj.put("name", contactItem.getName());
+        sObj.put("phonenumber", contactItem.getPhone());
+        sObj.put("icon",str);
+        sObj.put("tag", Tag);
+        add_Contact = sObj;
+        new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts");
     }
 
-    public Bitmap resizingBitmap(Bitmap oBitmap){
-        if(oBitmap==null)
-            return null;
-        float width = oBitmap.getWidth();
-        float height = oBitmap.getHeight();
-        float resizing_size = 200;
-        Bitmap rBitmap = null;
-        if (width > resizing_size){
-            float mWidth = (float)(width/100);
-            float fScale = (float)(resizing_size/mWidth);
-            width *= (fScale/100);
-            height *= (fScale/100);
-        }else if (height>resizing_size){
-            float mHeight = (float) (height/100);
-            float fScale = (float)(resizing_size/mHeight);
-            width *= (fScale/100);
-            height *= (fScale/100);
-        }
-
-        rBitmap = Bitmap.createScaledBitmap(oBitmap, (int)width, (int)height, true);
-        return rBitmap;
-    }
-
+    //Delete Contact 하고 DB에서 지움
     public void removeContact(View v, int position) {
-        v.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mMyData.get(position).getContentId(), null);
+        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tag+"/phonenumber/"+mMyData.get(position).getPhone());
+        v.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mMyData.get(position).getContactId(), null);
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
         onResume();
     }
 
-    public class JSONTaskPost extends AsyncTask<String, String, String> {
-
+    //전체 연락처들의 Array를 만들어 DB에 추가
+    public class JSONTaskPostArr extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String urls[]) {
             try {
-                //JSONObject를 만들고 key value 형식으로 값을 저장해준다.
-                JSONObject jsonObject = all_contact;
-
+                JSONArray jsonObject = all_contact;
                 HttpURLConnection con = null;
                 BufferedReader reader = null;
 
                 try {
-                    //URL url = new URL("http://192.168.25.16:3000/users");
                     URL url = new URL(urls[0]);
                     //연결을 함
                     con = (HttpURLConnection) url.openConnection();
@@ -298,9 +227,11 @@ public class TabFragment1 extends Fragment{
                     OutputStream outStream = con.getOutputStream();
                     //버퍼를 생성하고 넣음
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+
                     writer.write(jsonObject.toString());
                     writer.flush();
-                    writer.close();//버퍼를 받아줌
+                    writer.close();
+                    //버퍼를 받아줌
 
                     //서버로 부터 데이터를 받음
                     InputStream stream = con.getInputStream();
@@ -341,7 +272,140 @@ public class TabFragment1 extends Fragment{
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            //tvData.setText(result);//서버로 부터 받은 값을 출력해주는 부
+        }
+    }
+
+    //하나의 contact 추가
+    public class JSONTaskPostObj extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String urls[]) {
+            try {
+                JSONObject jsonObject = add_Contact;
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);
+                    //연결을 함
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("POST");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");//application JSON 형식으로 전송
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 보내기위해서 스트림 만듬
+                    OutputStream outStream = con.getOutputStream();
+                    //버퍼를 생성하고 넣음
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+
+                    writer.write(jsonObject.toString());
+                    writer.flush();
+                    writer.close();
+                    //버퍼를 받아줌
+
+                    //서버로 부터 데이터를 받음
+                    InputStream stream = con.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    StringBuffer buffer = new StringBuffer();
+
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+
+                    return buffer.toString();//서버로 부터 받은 값을 리턴해줌 아마 OK!!가 들어올것임
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();//버퍼를 닫아줌
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+        }
+    }
+
+    //하나의 contact 삭제
+    public class JSONTaskDeleteObj extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String urls[]) {
+            try {
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);
+                    //연결을 함
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("DELETE");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");//application JSON 형식으로 전송
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 부터 데이터를 받음
+                    InputStream stream = con.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    StringBuffer buffer = new StringBuffer();
+
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+
+                    return buffer.toString();//서버로 부터 받은 값을 리턴해줌 아마 OK!!가 들어올것임
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();//버퍼를 닫아줌
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
         }
     }
 
@@ -373,7 +437,6 @@ public class TabFragment1 extends Fragment{
                     while ((line = reader.readLine()) != null) {
                         buffer.append(line);
                     }
-
                     //다 가져오면 String 형변환을 수행한다. 이유는 protected String doInBackground(String... urls) 니까
                     parseJsonData(buffer.toString());
                     return buffer.toString();
@@ -407,27 +470,129 @@ public class TabFragment1 extends Fragment{
     private void parseJsonData(String jsonResponse){
         try
         {
-            test = (ImageView) view.findViewById(R.id.test);
             JSONObject jsonObject = new JSONObject(jsonResponse);
-            JSONArray jsonArray = (JSONArray) jsonObject.get("phonenumber");
+            JSONArray jsonArray = (JSONArray) jsonObject.get("phonenumbers");
 
             for(int i=0;i<jsonArray.length();i++)
             {
                 JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                String value1 = jsonObject1.getString("name");
-                String value2 = jsonObject1.getString("phonenumber");
-                String value3 = jsonObject1.getString("bitmapInfo");
+                String value3 = jsonObject1.getString("icon");
                 byte[] temp = Base64.decode(value3);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(temp, 0, temp.length);
-                test.setImageBitmap(bitmap);
-                Thread.sleep(3000);
             }
         }
         catch (JSONException e)
         {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+    }
+
+    //연락처를 Array 형태로 만들어서 Tag를 추가함
+    public JSONArray ArrListToJArr(ArrayList<ContactRecyclerItem> arrList, String dbTag) throws JSONException {
+
+        JSONArray jArray = new JSONArray();
+        for(int i=0; i<arrList.size(); i++){
+
+            ContactRecyclerItem contactItem;
+            contactItem = arrList.get(i);
+
+            Drawable temp = contactItem.getIcon();
+            Bitmap bitmap = ((BitmapDrawable)temp).getBitmap();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            byte[] bitmapdata = stream.toByteArray();
+            String str = Base64.encode(bitmapdata);
+
+            JSONObject sObj = new JSONObject();
+            sObj.put("name", contactItem.getName());
+            sObj.put("phonenumber", contactItem.getPhone());
+            sObj.put("icon",str);
+            sObj.put("tag", dbTag);
+            jArray.put(sObj);
+        }
+        return jArray;
+    }
+
+    public ArrayList<ContactRecyclerItem> getContactList(){
+        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        String[] projection = new String[]{
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.Contacts.PHOTO_ID,
+                ContactsContract.Contacts._ID,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+        };
+        String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, sortOrder);
+        ArrayList<ContactRecyclerItem> contactItems = new ArrayList<>();
+        if(cursor.moveToFirst()){
+            do{
+                Drawable drawable;
+                long photo_id = cursor.getLong(2);
+                long person_id = cursor.getLong(3);
+                String contact_id = cursor.getString(4);
+                ContactRecyclerItem contactItem = new ContactRecyclerItem();
+                contactItem.setName(cursor.getString(1));
+                contactItem.setPhone(cursor.getString(0));
+                contactItem.setContactId(contact_id);
+                contactItem.setIconID(photo_id);
+                contactItem.setPersonID(person_id);
+                Bitmap bm = loadContactPhoto(getActivity().getContentResolver(), contactItem.getPersonID(), contactItem.getIconID());
+                if(bm == null)
+                    drawable = getResources().getDrawable(R.drawable.photo_icon);
+                else {
+                    drawable = new BitmapDrawable(getResources(), bm);
+                }
+                contactItem.setIcon(drawable);
+                contactItems.add(contactItem);
+            }while (cursor.moveToNext());
+        }
+        return contactItems;
+    }
+
+    public Bitmap loadContactPhoto(ContentResolver cr, long id, long photo_id){
+        Uri uri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id);
+        InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, uri);
+        if(input != null)
+            return resizingBitmap(BitmapFactory.decodeStream(input));
+
+        byte[] photoBytes = null;
+        Uri photoUri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photo_id);
+        Cursor c = cr.query(photoUri, new String[]{ContactsContract.CommonDataKinds.Photo.PHOTO}, null, null,null);
+        try {
+            if (c.moveToFirst())
+                photoBytes = c.getBlob(0);
+        } catch(Exception e){
+            e.printStackTrace();
+        }finally {
+            c.close();
+        }
+
+        if(photoBytes != null)
+            return resizingBitmap(BitmapFactory.decodeByteArray(photoBytes, 0, photoBytes.length));
+        return null;
+    }
+
+    public Bitmap resizingBitmap(Bitmap oBitmap){
+        if(oBitmap==null)
+            return null;
+        float width = oBitmap.getWidth();
+        float height = oBitmap.getHeight();
+        float resizing_size = 200;
+        Bitmap rBitmap = null;
+        if (width > resizing_size){
+            float mWidth = (float)(width/100);
+            float fScale = (float)(resizing_size/mWidth);
+            width *= (fScale/100);
+            height *= (fScale/100);
+        }else if (height>resizing_size){
+            float mHeight = (float) (height/100);
+            float fScale = (float)(resizing_size/mHeight);
+            width *= (fScale/100);
+            height *= (fScale/100);
+        }
+
+        rBitmap = Bitmap.createScaledBitmap(oBitmap, (int)width, (int)height, true);
+        return rBitmap;
     }
 }
