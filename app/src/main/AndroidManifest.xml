@@ -33,14 +33,14 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".AddContact">
+                android:name=".TAB1.AddContact">
         </activity>
 
         <activity
-                android:name=".SelectContact">
+                android:name=".TAB1.SelectContact">
         </activity>
         <activity
-            android:name=".SelectContactOnDB">
+            android:name=".TAB1.SelectContactOnDB">
         </activity>
         <provider
                 android:name="androidx.core.content.FileProvider"

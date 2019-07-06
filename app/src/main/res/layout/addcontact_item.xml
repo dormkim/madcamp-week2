@@ -7,7 +7,7 @@
         android:background="@drawable/tab1_contact_module"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".AddContact">
+        tools:context=".TAB1.AddContact">
 
     <EditText
             android:id="@+id/name"
