@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.second.R;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
