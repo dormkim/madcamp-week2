@@ -5,7 +5,7 @@ module.exports = function(app, Image)
     app.post('/api/images', function(req, res){
         var image = new Image();
         image.title = req.body.title;
-        image.picture = req.body.picture;
+        image.photo = req.body.photo;
         image.tag = req.body.tag;
 
         image.save(function(err){
@@ -40,7 +40,7 @@ module.exports = function(app, Image)
 
     // GET ALL IMAGES BY TAG
     app.get('/api/images/tag/:tag', function(req,res){
-        Image.find({tag: req.params.tag}, {_id: 0, title: 1, picture: 1}, function(err, images){
+        Image.find({tag: req.params.tag}, {_id: 0, title: 1, photo: 1}, function(err, images){
             if(err) return res.status(500).send({error: 'database failure'});
             res.json(images);
         });
@@ -57,7 +57,7 @@ module.exports = function(app, Image)
 
     // GET IMAGE BY TITLE
     app.get('/api/images/title/:title', function(req, res){
-        Image.find({title: req.params.title}, {_id: 0, title: 1, picture: 1, tag: 1}, function(err, images){
+        Image.find({title: req.params.title}, {_id: 0, title: 1, photo: 1, tag: 1}, function(err, images){
             if(err) return res.status(500).json({error: err});
             if(images.length === 0) return res.status(404).json({error: 'image not found'});
             res.json(images);
@@ -66,7 +66,7 @@ module.exports = function(app, Image)
 
     // GET IMAGE BY TITLE ON TAG
     app.get('/api/images/tag/:tag/title/:title', function(req, res){
-        Image.find({tag: req.params.tag, title: req.params.title}, {_id: 0, title: 1, picture: 1}, function(err, images){
+        Image.find({tag: req.params.tag, title: req.params.title}, {_id: 0, title: 1, photo: 1}, function(err, images){
             if(err) return res.status(500).json({error: err});
             if(images.length === 0) return res.status(404).json({error: 'image not found'});
             res.json(images);
@@ -80,7 +80,7 @@ module.exports = function(app, Image)
             if(!image) return res.status(404).json({ error: 'image not found' });
 
             if(req.body.title) image.title = req.body.title;
-            if(req.body.picture) image.picture = req.body.picture;
+            if(req.body.photo) image.photo = req.body.photo;
             if(req.body.tag) image.tag = req.body.tag;
 
             image.save(function(err){
@@ -92,8 +92,10 @@ module.exports = function(app, Image)
 
     });
 
+    // UPDATE THE IMAGE ID
+
     // // UPDATE THE BOOK (ALTERNATIVE)
-    // app.put('/api/contacts/:book_id', function(req, res){
+    // app.put('/api/images/:book_id', function(req, res){
     //     Book.update({ _id: req.params.book_id }, { $set: req.body }, function(err, output){
     //         if(err) res.status(500).json({ error: 'database failure' });
     //         console.log(output);
@@ -116,4 +118,10 @@ module.exports = function(app, Image)
         });
     });
 
+    // DELETE IMAGE BY TAG
+    app.delete('/api/images/tag/:tag', function(req,res){
+      Image.deleteMany({tag: req.params.tag}, function(err, output){
+        res.status(204).end();
+      });
+    });
 };
