@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
 
 public class SelectContactOnDB extends AppCompatActivity {
 
@@ -40,13 +41,14 @@ public class SelectContactOnDB extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.selectcontact_item_on_db);
-        new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/tag/All");
-
         try {
-            Thread.sleep(2500);
+            new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/tag/All").get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         final ListView listview = findViewById(R.id.listview);
         selected_item_textview = findViewById(R.id.selected_item_textview);
         Button btn_check = findViewById(R.id.btn_check);
@@ -132,6 +134,7 @@ public class SelectContactOnDB extends AppCompatActivity {
                     }
                     //다 가져오면 String 형변환을 수행한다. 이유는 protected String doInBackground(String... urls) 니까
                     parseJsonData(buffer.toString());
+                    Log.i("asdfasdf", buffer.toString());
                     return buffer.toString();
 
                     //아래는 예외처리 부분이다.
@@ -225,7 +228,6 @@ public class SelectContactOnDB extends AppCompatActivity {
 
         try {
             getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-            Toast.makeText(getApplicationContext(), "연락처가 저장되었습니다.", Toast.LENGTH_LONG).show();
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (OperationApplicationException e) {

@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.ContentProviderOperation;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,8 +33,8 @@ public class AddContact extends AppCompatActivity {
     EditText nameText;
     EditText phoneText;
     ImageView userImage;
-
     Uri photoURI;
+    Bitmap rotate_bitmap = null;
 
     private static final int REQUEST_TAKE_ALBUM = 222;
 
@@ -90,12 +94,45 @@ public class AddContact extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_TAKE_ALBUM:
                 if (resultCode == Activity.RESULT_OK) {
-                    if(data.getData() != null){
-                        try {
-                            photoURI = data.getData();
-                            userImage.setImageURI(photoURI);
-                        }catch (Exception e){
-                            Log.e("TAKE_ALBUM_SINGLE ERROR", e.toString());
+                    if(data.getData() != null) {
+                        photoURI = data.getData();
+                        if (photoURI != null) {
+                            // Uri - bitmap 변환
+                            Bitmap bitmap = null;
+                            try {
+                                bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), photoURI);
+                                if (bitmap != null) {
+                                    String[] proj = { MediaStore.Images.Media.DATA };
+
+                                    Cursor cursor = getContentResolver().query(photoURI, proj, null, null, null);
+                                    cursor.moveToNext();
+                                    String path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+
+                                    ExifInterface exif = null;
+
+                                    try {
+                                        exif = new ExifInterface(path);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    int exifOrientation;
+                                    int exifDegree = 0;
+
+                                    if (exif != null) {
+                                        exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                                        exifDegree = exifOrientationToDegrees(exifOrientation);
+                                    }
+                                    rotate_bitmap = rotate(bitmap, exifDegree);
+                                    userImage.setImageBitmap(rotate_bitmap);
+                                }
+                            } catch (FileNotFoundException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -125,21 +162,10 @@ public class AddContact extends AppCompatActivity {
                 .build());
 
 
-        if(photoURI != null) {
-            // Uri - bitmap 변환
-            Bitmap bitmap = null;
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), photoURI);
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        if(rotate_bitmap != null) {
             //byte[]어레이 변환
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+            rotate_bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
             byte[] bytes = stream.toByteArray();
 
             //사진 추가
@@ -152,7 +178,6 @@ public class AddContact extends AppCompatActivity {
 
         try {
             getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-            Toast.makeText(getApplicationContext(), "연락처가 저장되었습니다.", Toast.LENGTH_SHORT).show();
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (OperationApplicationException e) {
@@ -160,5 +185,22 @@ public class AddContact extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("ContactsAdder", "Exceptoin encoutered while inserting contact: " + e);
         }
+    }
+
+    private int exifOrientationToDegrees(int exifOrientation) {
+        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
+            return 90;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
+            return 180;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
+            return 270;
+        }
+        return 0;
+    }
+
+    private Bitmap rotate(Bitmap bitmap, float degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 }

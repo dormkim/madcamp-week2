@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -35,6 +37,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class TabFragment1 extends Fragment{
     private RecyclerView mRecyclerView;
@@ -43,12 +46,14 @@ public class TabFragment1 extends Fragment{
     private ArrayList<ContactRecyclerItem> mMyData;
     private View view;
     private JSONObject add_Contact;
+    private JSONObject update_Contact;
     private JSONArray all_contact;
     private int mCount = 0;
     private long now1;
     private long now7;
+    private String add_name = null;
+    private String add_phone = null;
     private ArrayList<String> dbList = new ArrayList<>();
-    private ArrayList<Integer> selectList = new ArrayList<>();
     private static final int ADD_CONTACT = 1;
     private static final int SELECT_CONTACT = 2;
     private String Tag = "All";
@@ -62,6 +67,35 @@ public class TabFragment1 extends Fragment{
     public void onResume(){
         super.onResume();
         mMyData = getContactList();
+        if(add_phone!=null) {
+            for (int i = 0; i < mMyData.size(); i++) {
+                if (mMyData.get(i).getName().equals(add_name) && mMyData.get(i).getPhone().equals(add_phone)) {
+                    try {
+                        JSONObject sObj = new JSONObject();
+                        sObj.put("contact_id", mMyData.get(i).getContactId());
+                        update_Contact = sObj;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/api/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag).get();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(!Tag.equals("All")){
+                        try {
+                            new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/api/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All").get();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
         if (!dbList.contains(Tag)) {
             dbList.add(Tag);
             try {
@@ -69,9 +103,10 @@ public class TabFragment1 extends Fragment{
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/contacts/initialize");
             try {
-                Thread.sleep(2000);
+                new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/contacts/initialize").get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -141,6 +176,9 @@ public class TabFragment1 extends Fragment{
                 String number = data.getStringExtra("contact_phone");
                 String photo = data.getStringExtra("contact_uri");
 
+                add_name = name;
+                add_phone = number;
+
                 ContactRecyclerItem contactItem = new ContactRecyclerItem();
                 contactItem.setName(name);
                 contactItem.setPhone(number);
@@ -170,8 +208,28 @@ public class TabFragment1 extends Fragment{
 
             case SELECT_CONTACT:
                 String dbTag = data.getStringExtra("Tagname");
-                Log.i("Success","string : "+dbTag);
+                ArrayList<String> deleteList = data.getStringArrayListExtra("deleteList");
+                if(deleteList != null) {
+                    for (int i = 0; i < deleteList.size(); i++) {
+                        if (dbList.contains(deleteList.get(i))) {
+                            dbList.remove(deleteList.get(i));
+                        }
+                    }
+                }
                 if(!Tag.equals(dbTag)) {
+                    if(dbList.contains(dbTag)){
+                        setContacts();
+                        try {
+                            new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/tag/"+dbTag).get();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        for(int i = 0; i < mMyData.size(); i++){
+                            addtoContacts(mMyData.get(i).getName(), mMyData.get(i).getPhone(), mMyData.get(i).getIcon());
+                        }
+                    }
                     Tag=dbTag;
                 }
             }
@@ -194,16 +252,15 @@ public class TabFragment1 extends Fragment{
         sObj.put("contact_id",contactItem.getContactId());
         sObj.put("tag", Tag);
         add_Contact = sObj;
-        new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts");
-
         try {
-            Thread.sleep(1000);
+            new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts").get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         if(!Tag.equals("All")){
-
             JSONObject Obj = new JSONObject();
             Obj.put("name", contactItem.getName());
             Obj.put("phonenumber", contactItem.getPhone());
@@ -211,10 +268,10 @@ public class TabFragment1 extends Fragment{
             Obj.put("contact_id",contactItem.getContactId());
             Obj.put("tag", "All");
             add_Contact = Obj;
-            new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts");
-
             try {
-                Thread.sleep(1000);
+                new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts").get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -434,6 +491,220 @@ public class TabFragment1 extends Fragment{
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+        }
+    }
+
+    //하나의 contact 추가
+    public class JSONTaskUpdateObj extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String urls[]) {
+            try {
+                JSONObject jsonObject = update_Contact;
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);
+                    //연결을 함
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("PATCH");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");//application JSON 형식으로 전송
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 보내기위해서 스트림 만듬
+                    OutputStream outStream = con.getOutputStream();
+                    //버퍼를 생성하고 넣음
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+
+                    writer.write(jsonObject.toString());
+                    writer.flush();
+                    writer.close();
+                    //버퍼를 받아줌
+
+                    //서버로 부터 데이터를 받음
+                    InputStream stream = con.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    StringBuffer buffer = new StringBuffer();
+
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+
+                    return buffer.toString();//서버로 부터 받은 값을 리턴해줌 아마 OK!!가 들어올것임
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();//버퍼를 닫아줌
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+        }
+    }
+
+    //기존의 DBLIst에 있다면 get dbTag
+    public class JSONTaskGet extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String urls[]) {
+            try {
+                HttpURLConnection con = null;
+                BufferedReader reader = null;
+
+                try {
+                    URL url = new URL(urls[0]);//url을 가져온다.
+                    con = (HttpURLConnection) url.openConnection();
+                    con.connect();//연결 수행
+
+                    //입력 스트림 생성
+                    InputStream stream = con.getInputStream();
+
+                    //속도를 향상시키고 부하를 줄이기 위한 버퍼를 선언한다.
+                    reader = new BufferedReader(new InputStreamReader(stream));
+
+                    //실제 데이터를 받는곳
+                    StringBuffer buffer = new StringBuffer();
+
+                    //line별 스트링을 받기 위한 temp 변수
+                    String line = "";
+
+                    //아래라인은 실제 reader에서 데이터를 가져오는 부분이다. 즉 node.js서버로부터 데이터를 가져온다.
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line);
+                    }
+                    //다 가져오면 String 형변환을 수행한다. 이유는 protected String doInBackground(String... urls) 니까
+                    parseJsonData(buffer.toString());
+                    return buffer.toString();
+
+                    //아래는 예외처리 부분이다.
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    //종료가 되면 disconnect메소드를 호출한다.
+                    if (con != null) {
+                        con.disconnect();
+                    }
+                    try {
+                        //버퍼를 닫아준다.
+                        if (reader != null) {
+                            reader.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }//finally 부분
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private void parseJsonData(String jsonResponse){
+        try
+        {
+            JSONArray jsonArray = new JSONArray(jsonResponse);
+
+            for(int i=0;i<jsonArray.length();i++)
+            {
+                ContactRecyclerItem item = new ContactRecyclerItem();
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                item.setName(jsonObject.getString("name"));
+                item.setPhone(jsonObject.getString("phonenumber"));
+                String icon = jsonObject.getString("icon");
+                byte[] bytes = Base64.decode(icon);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                item.setIcon(drawable);
+                mMyData.add(item);
+            }
+        }
+        catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    //연락처 리셋
+    public void setContacts(){
+        int size = mMyData.size();
+        for(int i = 0; i < size; i++) {
+            getActivity().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mMyData.get(i).getContactId(), null);
+        }
+        mMyData.clear();
+    }
+
+    /*전화번호부 로컬에 저장하기*/
+    public void addtoContacts(String name, String phone, Drawable icon){
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .build());
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+                .build());
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phone)
+                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                .build());
+
+
+        if(icon != null) {
+            Bitmap bitmap = ((BitmapDrawable)icon).getBitmap();
+            //byte[]어레이 변환
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+            byte[] bytes = stream.toByteArray();
+
+            //사진 추가
+            ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Photo.PHOTO, bytes)
+                    .build());
+        }
+
+        try {
+            getContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e("ContactsAdder", "Exceptoin encoutered while inserting contact: " + e);
         }
     }
 

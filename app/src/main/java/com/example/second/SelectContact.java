@@ -22,10 +22,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class SelectContact extends AppCompatActivity {
 
+    private ArrayList<String> addList = new ArrayList<>();
+    private ArrayList<String> deleteList = new ArrayList<>();
     private String original_Tagname = null;
     private String Tagname = null;
     private TextView selected_item_textview;
@@ -69,6 +73,7 @@ public class SelectContact extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         if(position > 0 && position < list.size()) {
+                            deleteList.add(Tagname);
                             list.remove(position);
                             listview.clearChoices();
                             selected_item_textview.setText("아래 목록에서 선택하세요!");
@@ -90,6 +95,7 @@ public class SelectContact extends AppCompatActivity {
                 String name = saveName.getText().toString();
                 if(!list.contains(name) && name != null) {
                     list.add(name);
+                    addList.add(name);
                     adapter.notifyDataSetChanged();
                 }
                 else{
@@ -102,9 +108,10 @@ public class SelectContact extends AppCompatActivity {
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(original_Tagname.equals(Tagname)){
+                if(!addList.contains(Tagname) || original_Tagname.equals(Tagname)){
                     Intent intent = new Intent();
                     intent.putExtra("Tagname", Tagname);
+                    intent.putExtra("deleteList", deleteList);
                     setResult(RESULT_OK, intent);
                     finish();
                 }
@@ -130,9 +137,10 @@ public class SelectContact extends AppCompatActivity {
     }
 
     public void tagDelete(){
-        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag"+Tagname);
         try {
-            Thread.sleep(1000);
+            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tagname).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
