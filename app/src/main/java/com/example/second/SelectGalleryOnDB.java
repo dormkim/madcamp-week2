@@ -178,7 +178,7 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             for(int i = 0; i < files.length; i++){
                 File file = new File(GalleryDir + files[i]);
                 file.delete();
-                gallery_update(files[i]);
+                gallery_update(GalleryDir + files[i]);
             }
         }
         //selectdata에서 해당하는 놈들을 불러와서 갤러리에 업데이트....를 해야하는데

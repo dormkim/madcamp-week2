@@ -70,8 +70,16 @@ public class SelectContactOnDB extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (!select_num.contains(i)) {
-                    select_num.add(i);
+                if(!listview.isItemChecked(i)) {
+                    if (!select_num.contains(i)) {
+                        select_num.add(i);
+                    }
+                    else{
+                        select_num.remove(i);
+                    }
+                }
+                else{
+                    select_num.remove(i);
                 }
             }
         });
