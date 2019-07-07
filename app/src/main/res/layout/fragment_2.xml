@@ -51,7 +51,7 @@
             app:layout_constraintBottom_toBottomOf="@id/constraintLayout_2"
             app:layout_constraintLeft_toLeftOf="@id/constraintLayout_2"
             app:layout_constraintRight_toRightOf="@id/constraintLayout_2"
-            app:srcCompat="@android:drawable/ic_menu_delete" />
+            app:srcCompat="@android:drawable/ic_menu_directions" />
 
     <RelativeLayout
             android:layout_width="match_parent"

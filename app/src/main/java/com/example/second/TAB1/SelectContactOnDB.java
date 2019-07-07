@@ -88,7 +88,7 @@ public class SelectContactOnDB extends AppCompatActivity {
         });
     }
 
-    //연락처 리셋하는 부분
+    //연락처 리셋하고 저장
     public void setContacts(){
         original_Data = getContactList();
         int size = original_Data.size();
@@ -102,8 +102,8 @@ public class SelectContactOnDB extends AppCompatActivity {
             Drawable icon = select_Data.get(select_num.get(i)).getIcon();
             addtoContacts(name, phone, icon);
         }
-        Log.i("success", "reset");
     }
+
     public class JSONTaskGet extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String urls[]) {
@@ -134,7 +134,7 @@ public class SelectContactOnDB extends AppCompatActivity {
                     }
                     //다 가져오면 String 형변환을 수행한다. 이유는 protected String doInBackground(String... urls) 니까
                     parseJsonData(buffer.toString());
-                    Log.i("asdfasdf", buffer.toString());
+
                     return buffer.toString();
 
                     //아래는 예외처리 부분이다.

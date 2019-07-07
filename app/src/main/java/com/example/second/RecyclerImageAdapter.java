@@ -3,7 +3,8 @@ package com.example.second;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,8 +48,6 @@ public class RecyclerImageAdapter extends RecyclerView.Adapter<RecyclerImageAdap
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         AlbumRecyclerItem item = mData.get(position);
-        //Uri photoUri = Uri.parse(item.getitemPath());
-        //holder.photo.setImageURI(photoUri);
         BitmapFactory.Options bo = new BitmapFactory.Options();
         bo.inSampleSize = 4;
         Bitmap bitmap = BitmapFactory.decodeFile(item.getitemPath(), bo);

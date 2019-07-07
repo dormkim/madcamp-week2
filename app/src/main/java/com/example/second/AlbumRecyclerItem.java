@@ -2,12 +2,23 @@ package com.example.second;
 
 public class AlbumRecyclerItem {
     private String itemPath;
+    private String photo_id;
 
-    public AlbumRecyclerItem(String itemPath) {
+    public AlbumRecyclerItem(String itemPath, String photo_id) {
         this.itemPath = itemPath;
+        this.photo_id = photo_id;
     }
 
+    public void setPhoto_id(String photo_id){
+        this.photo_id = photo_id;
+    }
+    public void setItemPath(String itemPath){
+        this.itemPath = itemPath;
+    }
     public String getitemPath(){
         return this.itemPath;
+    }
+    public String getPhoto_id(){
+        return this.photo_id;
     }
 }

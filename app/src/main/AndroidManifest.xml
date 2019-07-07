@@ -37,11 +37,16 @@
         </activity>
 
         <activity
-                android:name=".TAB1.SelectContact">
+                android:name=".SelectTag">
         </activity>
         <activity
             android:name=".TAB1.SelectContactOnDB">
         </activity>
+
+        <activity
+                android:name=".SelectGalleryOnDB">
+        </activity>
+
         <provider
                 android:name="androidx.core.content.FileProvider"
                 android:authorities="com.example.second.provider"

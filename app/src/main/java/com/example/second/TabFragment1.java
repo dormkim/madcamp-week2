@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.second.TAB1.AddContact;
 import com.example.second.TAB1.ContactRecyclerItem;
-import com.example.second.TAB1.SelectContact;
 import com.futuremind.recyclerviewfastscroll.FastScroller;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -147,7 +146,8 @@ public class TabFragment1 extends Fragment{
                 if(mCount > 6){
                     now7 = System.currentTimeMillis();
                     if((now7 - now1)/1000.0 < 5) {
-                        Intent intent = new Intent(getActivity(), SelectContact.class);
+                        Intent intent = new Intent(getActivity(), SelectTag.class);
+                        intent.putExtra("mode", "contact");
                         intent.putExtra("tagName", Tag);
                         intent.putExtra("dbList", dbList);
                         startActivityForResult(intent, SELECT_CONTACT);
@@ -496,7 +496,7 @@ public class TabFragment1 extends Fragment{
         }
     }
 
-    //하나의 contact 추가
+    //Tag update
     public class JSONTaskUpdateObj extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String urls[]) {

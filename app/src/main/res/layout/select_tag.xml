@@ -8,7 +8,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="@dimen/activity_vertical_margin"
-        tools:context=".TAB1.SelectContact">
+        tools:context=".SelectTag">
 
     <LinearLayout
             android:layout_width="match_parent"

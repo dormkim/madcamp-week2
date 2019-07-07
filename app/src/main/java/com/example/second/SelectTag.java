@@ -1,4 +1,4 @@
-package com.example.second.TAB1;
+package com.example.second;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import com.example.second.R;
+import com.example.second.TAB1.SelectContactOnDB;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.BufferedReader;
@@ -21,19 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class SelectContact extends AppCompatActivity {
+public class SelectTag extends AppCompatActivity {
 
     private ArrayList<String> addList = new ArrayList<>();
     private ArrayList<String> deleteList = new ArrayList<>();
     private String original_Tagname = null;
     private String Tagname = null;
     private TextView selected_item_textview;
-    private int SELECT_CONTACT_ON_DB = 1;
+    private int SELECT_CONTACT_ON_DB = 4;
+    private int SELECT_GALLERY_ON_DB = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.selectcontact_item);
+        setContentView(R.layout.select_tag);
 
         final ListView listview = findViewById(R.id.listview);
         selected_item_textview = findViewById(R.id.selected_item_textview);
@@ -111,9 +113,15 @@ public class SelectContact extends AppCompatActivity {
                     finish();
                 }
                 else if(Tagname != null){
-                    Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
-                    selectIntent.putExtra("contacts",getIntent().getData());
-                    startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
+                    String mode = getIntent().getStringExtra("mode");
+                    if(mode.equals("contact")){
+                        Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
+                        startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
+                    }
+                    else if(mode.equals("gallery")){
+                        Intent selectIntent = new Intent(getApplicationContext(), SelectGalleryOnDB.class);
+                        startActivityForResult(selectIntent, SELECT_GALLERY_ON_DB);
+                    }
                 }
                 else{
                     Toast.makeText(getApplicationContext(), "항목을 선택하세요", Toast.LENGTH_SHORT).show();
