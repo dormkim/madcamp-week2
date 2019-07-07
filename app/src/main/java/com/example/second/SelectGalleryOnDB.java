@@ -8,7 +8,6 @@ import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -128,8 +127,8 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             }
 
             // 화면에 표시될 View(Layout이 inflate된)으로부터 위젯에 대한 참조 획득
-            ImageView iconImageView = (ImageView) convertView.findViewById(R.id.image) ;
-            TextView titleTextView = (TextView) convertView.findViewById(R.id.image_name) ;
+            ImageView iconImageView = convertView.findViewById(R.id.image) ;
+            TextView titleTextView = convertView.findViewById(R.id.image_name) ;
 
             // Data Set(listViewItemList)에서 position에 위치한 데이터 참조 획득
             ImageListView listViewItem = listViewItemList.get(position);
@@ -283,7 +282,7 @@ public class SelectGalleryOnDB extends AppCompatActivity {
     }
 
     //갤러리 업데이트
-    private void gallery_update(String filePath) throws ExecutionException, InterruptedException {
+    private void gallery_update(String filePath) {
         Intent scan_intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(filePath);
         Uri conURI = Uri.fromFile(f);
