@@ -42,9 +42,9 @@ public class AddContact extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.addcontact_item);
-        userImage = (ImageView) findViewById(R.id.icon);
-        nameText = (EditText) findViewById(R.id.name);
-        phoneText = (EditText) findViewById(R.id.phone);
+        userImage = findViewById(R.id.icon);
+        nameText = findViewById(R.id.name);
+        phoneText = findViewById(R.id.phone);
     }
 
     public void onBackButtonClicked(View v) {

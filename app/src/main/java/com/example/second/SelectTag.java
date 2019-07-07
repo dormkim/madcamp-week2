@@ -150,7 +150,7 @@ public class SelectTag extends AppCompatActivity {
         Tagname = null;
     }
 
-    //하나의 contact 삭제
+    //Tag 전체 삭제
     public class JSONTaskDeleteObj extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String urls[]) {

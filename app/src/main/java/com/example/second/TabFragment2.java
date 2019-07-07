@@ -1,20 +1,18 @@
 package com.example.second;
 
 import android.app.Activity;
-import android.database.Cursor;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -43,8 +41,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import static android.view.View.VISIBLE;
@@ -119,9 +117,9 @@ public class TabFragment2 extends Fragment {
             }
             try {
                 new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/images/initialize").get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
             } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
                 e.printStackTrace();
             }
         }
@@ -218,6 +216,7 @@ public class TabFragment2 extends Fragment {
         btn_delete.setVisibility(View.GONE);
         btn_check.setVisibility(View.GONE);
     }
+
     public void initDataset() {
         mMyData.clear();
         String GalleryDir = getDirectoryPath();
@@ -280,8 +279,6 @@ public class TabFragment2 extends Fragment {
         File imageFile = null;
         File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "/madcamp");
         //File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "/Camera");
-
-        //이미 madcamp 폴더는 존재하므로 예외처리는 따로 안함
         imageFile = new File(storageDir, imageFileName);
         mCurrentPath = imageFile.getAbsolutePath();
 
@@ -314,7 +311,6 @@ public class TabFragment2 extends Fragment {
                             cursor.moveToNext();
                             path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
                             cursor.close();
-
                             ExifInterface exif = null;
                             try {
                                 exif = new ExifInterface(path);
@@ -339,8 +335,12 @@ public class TabFragment2 extends Fragment {
                             gallery_update(true, path);
                             mAdapter.notifyDataSetChanged();
                         }
-                    }catch (IOException | ExecutionException | InterruptedException e) {
+                    }catch (IOException e) {
                         // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
                 }
@@ -427,7 +427,7 @@ public class TabFragment2 extends Fragment {
         }
     }
 
-    //갤러리에 사진 추가시 목록에 띄우고 DB에 POST 요청
+    //갤러리에 사진 추가시 해서 목록을 띄워줌(갤러리에)
     private void gallery_update(boolean addphoto, String filePath) throws ExecutionException, InterruptedException {
         Intent scan_intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(filePath);
@@ -435,8 +435,8 @@ public class TabFragment2 extends Fragment {
         scan_intent.setData(conURI);
         getActivity().sendBroadcast(scan_intent);
 
-        String [] imageName = filePath.split("/");
         if(addphoto) {
+            String [] imageName = filePath.split("/");
             AlbumRecyclerItem item = new AlbumRecyclerItem(filePath, imageName[imageName.length - 1]);
             mMyData.add(item);
 
@@ -832,6 +832,14 @@ public class TabFragment2 extends Fragment {
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
+                            //DB에서도 삭제
+                            try {
+                                getDelete(getPath, position);
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                             imageView.setVisibility(View.GONE);
                             btn_back.setVisibility(View.GONE);
                             btn_delete.setVisibility(View.GONE);
@@ -903,7 +911,7 @@ public class TabFragment2 extends Fragment {
     //갤러리 리셋
     private void resetGallery() throws ExecutionException, InterruptedException {
         File file;
-        for(int i = 0; i < mMyData.size(); i++){
+        for (int i = 0; i < mMyData.size(); i++) {
             String filePath = mMyData.get(i).getitemPath();
             file = new File(filePath);
             file.delete();

@@ -9,9 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class RecyclerImageAdapter extends RecyclerView.Adapter<RecyclerImageAdapter.ViewHolder> {
@@ -19,7 +18,6 @@ public class RecyclerImageAdapter extends RecyclerView.Adapter<RecyclerImageAdap
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView photo ;
-        //TextView desc ;
         ViewHolder(View itemView) {
             super(itemView) ;
             // 뷰 객체에 대한 참조. (hold strong reference)
@@ -51,12 +49,47 @@ public class RecyclerImageAdapter extends RecyclerView.Adapter<RecyclerImageAdap
         BitmapFactory.Options bo = new BitmapFactory.Options();
         bo.inSampleSize = 4;
         Bitmap bitmap = BitmapFactory.decodeFile(item.getitemPath(), bo);
-        holder.photo.setImageBitmap(bitmap);
+        if (bitmap != null) {
+            ExifInterface exif = null;
+            try {
+                exif = new ExifInterface(item.getitemPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            int exifOrientation;
+            int exifDegree = 0;
+
+            if (exif != null) {
+                exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                exifDegree = exifOrientationToDegrees(exifOrientation);
+            }
+
+            Bitmap rotate_bitmap = rotate(bitmap, exifDegree);
+            holder.photo.setImageBitmap(rotate_bitmap);
+        }
     }
 
     // getItemCount() - 전체 데이터 갯수 리턴.
     @Override
     public int getItemCount() {
         return mData.size() ;
+    }
+
+    private int exifOrientationToDegrees(int exifOrientation) {
+        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
+            return 90;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
+            return 180;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
+            return 270;
+        }
+        return 0;
+    }
+
+    private Bitmap rotate(Bitmap bitmap, float degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 }
