@@ -2,7 +2,8 @@
     <string name="app_name">Gazzzzza</string>
     <string name="tab_text_1">Contact</string>
     <string name="tab_text_2">Album</string>
-    <string name="tab_text_3">Widget</string>
+    <string name="tab_text_3">Encryption</string>
+    <string name="tab_text_4">Decryption</string>
     <string name="icon">No Photo</string>
     <string name="StringValue">이미지가 열리지 않습니다.</string>
     <string name="facebook_app_id">479524069518189</string>
