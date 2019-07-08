@@ -14,6 +14,7 @@ app.use(bodyParser.urlencoded({limit: '30mb', extended: true}));
 
 var Contact = require('./models/contact');
 var Image = require('./models/image');
+var Id = require('./models/id');
 
 // [CONFIGURE SERVER PORT]
 var port = process.env.PORT || 8080;
@@ -21,6 +22,7 @@ var port = process.env.PORT || 8080;
 // [CONFIGURE ROUTER]
 var router = require('./routes/index1')(app, Contact);
 var router = require('./routes/index2')(app, Image);
+var router = require('./routes/index3')(app, Id);
 
 // [ CONFIGURE mongoose ]
 
