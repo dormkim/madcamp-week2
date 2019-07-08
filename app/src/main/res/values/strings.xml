@@ -5,4 +5,6 @@
     <string name="tab_text_3">Widget</string>
     <string name="icon">No Photo</string>
     <string name="StringValue">이미지가 열리지 않습니다.</string>
+    <string name="facebook_app_id">479524069518189</string>
+    <string name="fb_login_protocol_scheme">fb479524069518189</string>
 </resources>

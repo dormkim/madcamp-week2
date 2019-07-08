@@ -2,11 +2,12 @@
 
 module.exports = function(app, Image)
 {
-    app.post('/api/images', function(req, res){
+    app.post('/images', function(req, res){
         var image = new Image();
         image.title = req.body.title;
         image.photo = req.body.photo;
         image.tag = req.body.tag;
+        image.email = req.body.email;
 
         image.save(function(err){
             if(err){
@@ -19,7 +20,7 @@ module.exports = function(app, Image)
     });
 
     // INITAILIZE
-    app.post('/api/images/initialize', function(req, res){
+    app.post('/images/initialize', function(req, res){
       var jsonarr = req.body;
       var sendarr = [];
       jsonarr.some(function(element){
@@ -31,23 +32,23 @@ module.exports = function(app, Image)
     });
 
     // GET ALL IMAGES
-    app.get('/api/images', function(req,res){
+    app.get('/images', function(req,res){
         Image.find(function(err, images){
             if(err) return res.status(500).send({error: 'database failure'});
             res.json(images);
         });
     });
 
-    // GET ALL IMAGES BY TAG
-    app.get('/api/images/tag/:tag', function(req,res){
-        Image.find({tag: req.params.tag}, {_id: 0, title: 1, photo: 1}, function(err, images){
+    // GET ALL IMAGES BY TAG AND EMAIL
+    app.get('/images/tag/:tag/:email', function(req,res){
+        Image.find({tag: req.params.tag, email: req.params.email}, {_id: 0, title: 1, photo: 1}, function(err, images){
             if(err) return res.status(500).send({error: 'database failure'});
             res.json(images);
         });
     });
 
     // GET SINGLE IMAGE
-    app.get('/api/images/:image_id', function(req, res){
+    app.get('/images/:image_id', function(req, res){
         Image.findOne({_id: req.params.image_id}, function(err, image){
             if(err) return res.status(500).json({error: err});
             if(!image) return res.status(404).json({error: 'image not found'});
@@ -56,7 +57,7 @@ module.exports = function(app, Image)
     });
 
     // GET IMAGE BY TITLE
-    app.get('/api/images/title/:title', function(req, res){
+    app.get('/images/title/:title', function(req, res){
         Image.find({title: req.params.title}, {_id: 0, title: 1, photo: 1, tag: 1}, function(err, images){
             if(err) return res.status(500).json({error: err});
             if(images.length === 0) return res.status(404).json({error: 'image not found'});
@@ -65,8 +66,8 @@ module.exports = function(app, Image)
     });
 
     // GET IMAGE BY TITLE ON TAG
-    app.get('/api/images/tag/:tag/title/:title', function(req, res){
-        Image.find({tag: req.params.tag, title: req.params.title}, {_id: 0, title: 1, photo: 1}, function(err, images){
+    app.get('/images/tag/:tag/title/:title/:email', function(req, res){
+        Image.find({tag: req.params.tag, title: req.params.title, email: req.params.email}, {_id: 0, title: 1, photo: 1}, function(err, images){
             if(err) return res.status(500).json({error: err});
             if(images.length === 0) return res.status(404).json({error: 'image not found'});
             res.json(images);
@@ -74,7 +75,7 @@ module.exports = function(app, Image)
     });
 
         // UPDATE THE IMAGE BY ID
-    app.put('/api/images/:image_id', function(req, res){
+    app.put('/images/:image_id', function(req, res){
         Image.findById(req.params.image_id, function(err, image){
             if(err) return res.status(500).json({ error: 'database failure' });
             if(!image) return res.status(404).json({ error: 'image not found' });
@@ -105,7 +106,7 @@ module.exports = function(app, Image)
     // });
 
     // DELETE IMAGE BY ID
-    app.delete('/api/images/:image_id', function(req, res){
+    app.delete('/images/:image_id', function(req, res){
         Image.remove({ _id: req.params.image_id }, function(err, output){
             if(err) return res.status(500).json({ error: "database failure" });
 
@@ -118,9 +119,16 @@ module.exports = function(app, Image)
         });
     });
 
+    // DELETE IMAGE BY TAG AND TITLE
+    app.delete('/images/tag/:tag/title/:title/:email', function(req,res){
+      Image.deleteOne({tag: req.params.tag, title: req.params.title, email: req.params.email}, function(err, output){
+        res.status(204).end();
+      });
+    });
+
     // DELETE IMAGE BY TAG
-    app.delete('/api/images/tag/:tag', function(req,res){
-      Image.deleteMany({tag: req.params.tag}, function(err, output){
+    app.delete('/images/tag/:tag/:email', function(req,res){
+      Image.deleteMany({tag: req.params.tag, email: req.params.email}, function(err, output){
         res.status(204).end();
       });
     });

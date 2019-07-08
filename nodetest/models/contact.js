@@ -7,7 +7,8 @@ var contactSchema =new Schema({
   phonenumber: String,
   tag: String,
   icon: String,
-  contact_id: String
+  contact_id: String,
+  email: String
 });
 
 module.exports = mongoose.model('contact', contactSchema);

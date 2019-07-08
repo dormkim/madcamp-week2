@@ -58,10 +58,12 @@ public class TabFragment1 extends Fragment{
     private static final int ADD_CONTACT = 1;
     private static final int SELECT_CONTACT = 2;
     private String Tag = "All";
+    private String user_email;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_1, container, false);
+        user_email = ((MainActivity)getActivity()).user_email;
         return view;
     }
     @Override
@@ -79,7 +81,7 @@ public class TabFragment1 extends Fragment{
                         e.printStackTrace();
                     }
                     try {
-                        new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/api/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag).get();
+                        new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag + "/" + user_email).get();
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
@@ -87,7 +89,7 @@ public class TabFragment1 extends Fragment{
                     }
                     if(!Tag.equals("All")){
                         try {
-                            new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/api/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All").get();
+                            new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All/" + user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -105,7 +107,7 @@ public class TabFragment1 extends Fragment{
                 e.printStackTrace();
             }
             try {
-                new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/contacts/initialize").get();
+                new JSONTaskPostArr().execute("http://143.248.38.46:8080/contacts/initialize").get();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -150,6 +152,7 @@ public class TabFragment1 extends Fragment{
                         intent.putExtra("mode", "contact");
                         intent.putExtra("tagName", Tag);
                         intent.putExtra("dbList", dbList);
+                        intent.putExtra("user_email",user_email);
                         startActivityForResult(intent, SELECT_CONTACT);
                     }
                     else{
@@ -222,7 +225,7 @@ public class TabFragment1 extends Fragment{
                     if(dbList.contains(dbTag)){
                         setContacts();
                         try {
-                            new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/tag/"+dbTag).get();
+                            new JSONTaskGet().execute("http://143.248.38.46:8080/contacts/tag/"+dbTag + "/" + user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -252,10 +255,11 @@ public class TabFragment1 extends Fragment{
         sObj.put("phonenumber", contactItem.getPhone());
         sObj.put("icon",str);
         sObj.put("contact_id",contactItem.getContactId());
+        sObj.put("email", user_email);
         sObj.put("tag", Tag);
         add_Contact = sObj;
         try {
-            new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts").get();
+            new JSONTaskPostObj().execute("http://143.248.38.46:8080/contacts").get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -268,10 +272,11 @@ public class TabFragment1 extends Fragment{
             Obj.put("phonenumber", contactItem.getPhone());
             Obj.put("icon",str);
             Obj.put("contact_id",contactItem.getContactId());
+            Obj.put("email",user_email);
             Obj.put("tag", "All");
             add_Contact = Obj;
             try {
-                new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/contacts").get();
+                new JSONTaskPostObj().execute("http://143.248.38.46:8080/contacts").get();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -282,7 +287,7 @@ public class TabFragment1 extends Fragment{
 
     //Delete Contact 하고 DB에서 지움
     public void removeContact(View v, int position) {
-        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tag+"/phonenumber/"+mMyData.get(position).getPhone());
+        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/contacts/tag/"+Tag+"/phonenumber/"+mMyData.get(position).getPhone() + "/" + user_email);
         v.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mMyData.get(position).getContactId(), null);
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
@@ -731,6 +736,7 @@ public class TabFragment1 extends Fragment{
             sObj.put("phonenumber", contactItem.getPhone());
             sObj.put("icon",str);
             sObj.put("contact_id",contactItem.getContactId());
+            sObj.put("email", user_email);
             sObj.put("tag", dbTag);
             jArray.put(sObj);
         }

@@ -32,6 +32,8 @@ public class SelectTag extends AppCompatActivity {
     private int SELECT_CONTACT_ON_DB = 4;
     private int SELECT_GALLERY_ON_DB = 5;
 
+    private String user_email;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +53,7 @@ public class SelectTag extends AppCompatActivity {
         final List<String> list;
         list = intent.getStringArrayListExtra("dbList");
         original_Tagname = intent.getStringExtra("tagName");
+        user_email = intent.getStringExtra("user_email");
 
         //리스트뷰와 리스트를 연결하기 위해 사용되는 어댑터
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
@@ -116,10 +119,12 @@ public class SelectTag extends AppCompatActivity {
                     String mode = getIntent().getStringExtra("mode");
                     if(mode.equals("contact")){
                         Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
+                        selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
                         startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
                     }
                     else if(mode.equals("gallery")){
                         Intent selectIntent = new Intent(getApplicationContext(), SelectGalleryOnDB.class);
+                        selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
                         startActivityForResult(selectIntent, SELECT_GALLERY_ON_DB);
                     }
                 }
@@ -141,7 +146,7 @@ public class SelectTag extends AppCompatActivity {
 
     public void tagDelete(){
         try {
-            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tagname).get();
+            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tagname+"/email/"+user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

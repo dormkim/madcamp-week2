@@ -77,11 +77,14 @@ public class TabFragment2 extends Fragment {
     private long now7;
 
     private String Tag = "All";
+    private String user_email;
+
     private ArrayList<String> dbList = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_2, container, false);
+        user_email = ((MainActivity)getActivity()).user_email;
         return view;
     }
 
@@ -116,7 +119,7 @@ public class TabFragment2 extends Fragment {
                 e.printStackTrace();
             }
             try {
-                new JSONTaskPostArr().execute("http://143.248.38.46:8080/api/images/initialize").get();
+                new JSONTaskPostArr().execute("http://143.248.38.46:8080/images/initialize").get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
@@ -165,6 +168,7 @@ public class TabFragment2 extends Fragment {
                         intent.putExtra("mode","gallery");
                         intent.putExtra("tagName", Tag);
                         intent.putExtra("dbList", dbList);
+                        intent.putExtra("user_email",user_email);
                         startActivityForResult(intent, SELECT_GALLERY);
                     }
                     else{
@@ -414,7 +418,7 @@ public class TabFragment2 extends Fragment {
                             e.printStackTrace();
                         }
                         try {
-                            new JSONTaskGet().execute("http://143.248.38.46:8080/api/images/tag/" + dbTag).get();
+                            new JSONTaskGet().execute("http://143.248.38.46:8080/images/tag/" + dbTag + "/" +user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -451,24 +455,26 @@ public class TabFragment2 extends Fragment {
             try {
                 Obj.put("title", item.getPhoto_id());
                 Obj.put("photo", str);
+                Obj.put("email",user_email);
                 Obj.put("tag",Tag);
                 add_image = Obj;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/images").get();
+            new JSONTaskPostObj().execute("http://143.248.38.46:8080/images").get();
 
             if(Tag != "All"){
                 JSONObject sObj = new JSONObject();
                 try {
                     sObj.put("title", item.getPhoto_id());
                     sObj.put("photo", str);
+                    sObj.put("email",user_email);
                     sObj.put("tag","All");
                     add_image = sObj;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                new JSONTaskPostObj().execute("http://143.248.38.46:8080/api/images").get();
+                new JSONTaskPostObj().execute("http://143.248.38.46:8080/images").get();
             }
         }
     }
@@ -491,6 +497,7 @@ public class TabFragment2 extends Fragment {
             JSONObject sObj = new JSONObject();
             sObj.put("title", mMyData.get(i).getPhoto_id());
             sObj.put("photo", str);
+            sObj.put("email",user_email);
             sObj.put("tag", dbTag);
             jArray.put(sObj);
         }
@@ -871,7 +878,7 @@ public class TabFragment2 extends Fragment {
         file.delete();
         mCurrentPath = getPath;
         gallery_update(false, getPath);
-        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/images/title/" + mMyData.get(position).getPhoto_id() + "/tag/" + Tag).get();
+        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/images/title/" + mMyData.get(position).getPhoto_id() + "/tag/" + Tag + "/" + user_email).get();
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
         Toast.makeText(getContext(),"사진 삭제 완료", Toast.LENGTH_SHORT).show();

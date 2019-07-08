@@ -36,13 +36,15 @@ public class SelectContactOnDB extends AppCompatActivity {
     private ArrayList<ContactRecyclerItem> original_Data = new ArrayList<>();
     private ArrayList<ContactRecyclerItem> select_Data = new ArrayList<>();
     private ArrayList<Integer> select_num = new ArrayList<>();
+    private String user_email;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.selectcontact_item_on_db);
+        user_email = getIntent().getStringExtra("user_email");
         try {
-            new JSONTaskGet().execute("http://143.248.38.46:8080/api/contacts/tag/All").get();
+            new JSONTaskGet().execute("http://143.248.38.46:8080/contacts/tag/All/" + user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -70,16 +72,8 @@ public class SelectContactOnDB extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if(!listview.isItemChecked(i)) {
-                    if (!select_num.contains(i)) {
-                        select_num.add(i);
-                    }
-                    else{
-                        select_num.remove(i);
-                    }
-                }
-                else{
-                    select_num.remove(i);
+                if(!select_num.contains(i)){
+                    select_num.add(i);
                 }
             }
         });
