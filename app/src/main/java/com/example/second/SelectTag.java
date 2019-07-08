@@ -93,7 +93,7 @@ public class SelectTag extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String name = saveName.getText().toString();
-                if(!list.contains(name) && name != null) {
+                if(!list.contains(name) && !name.equals("")) {
                     list.add(name);
                     addList.add(name);
                     adapter.notifyDataSetChanged();
@@ -146,7 +146,7 @@ public class SelectTag extends AppCompatActivity {
 
     public void tagDelete(){
         try {
-            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/api/contacts/tag/"+Tagname+"/email/"+user_email).get();
+            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/contacts/tag/" + Tagname + "/" + user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

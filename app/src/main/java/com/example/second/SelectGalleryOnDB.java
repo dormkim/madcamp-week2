@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,11 +34,13 @@ import java.util.concurrent.ExecutionException;
 
 public class SelectGalleryOnDB extends AppCompatActivity {
 
+    private ListViewAdapter listViewAdapter = null;
     private TextView selected_item_textview;
     private ArrayList<AlbumRecyclerItem> select_Data = new ArrayList<>();
     private ArrayList<Integer> select_num = new ArrayList<>();
-    private ArrayList<Select_Image> select_images = new ArrayList<>();
     private String user_email;
+    ArrayList<Select_Image> select_images = new ArrayList<>();
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +106,6 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             }
         });
     }
-
 
     public class ListViewAdapter extends BaseAdapter {
         // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
@@ -289,23 +291,6 @@ public class SelectGalleryOnDB extends AppCompatActivity {
         Uri conURI = Uri.fromFile(f);
         scan_intent.setData(conURI);
         getApplicationContext().sendBroadcast(scan_intent);
-    }
-
-    private int exifOrientationToDegrees(int exifOrientation) {
-        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
-            return 90;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
-            return 180;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
-            return 270;
-        }
-        return 0;
-    }
-
-    private Bitmap rotate(Bitmap bitmap, float degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     public class Select_Image{

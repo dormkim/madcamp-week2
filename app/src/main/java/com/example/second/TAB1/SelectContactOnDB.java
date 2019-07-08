@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -72,9 +73,6 @@ public class SelectContactOnDB extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if(!select_num.contains(i)){
-                    select_num.add(i);
-                }
             }
         });
 
@@ -82,7 +80,13 @@ public class SelectContactOnDB extends AppCompatActivity {
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Collections.sort(select_num);
+                SparseBooleanArray checked = listview.getCheckedItemPositions();
+                int size = checked.size();
+                for(int i = 0; i < size; i++){
+                    if(checked.get(i)) {
+                        select_num.add(i);
+                    }
+                }
                 setContacts();
                 setResult(RESULT_OK);
                 finish();
