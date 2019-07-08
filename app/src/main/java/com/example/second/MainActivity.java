@@ -1,8 +1,12 @@
 package com.example.second;
 
 import android.Manifest;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
@@ -11,6 +15,8 @@ import com.google.android.material.tabs.TabLayout;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        try { PackageInfo info = getPackageManager().getPackageInfo("com.example.project1", PackageManager.GET_SIGNATURES); for (Signature signature : info.signatures) { MessageDigest md = MessageDigest.getInstance("SHA"); md.update(signature.toByteArray()); String str = Base64.encodeToString(md.digest(), Base64.DEFAULT); Log.d("KeyHash:", str); Toast.makeText(this, str, Toast.LENGTH_LONG).show(); } }catch(NoSuchAlgorithmException e){ e.printStackTrace(); }catch (PackageManager.NameNotFoundException e){ e.printStackTrace(); }
 
 
         user_email = getIntent().getStringExtra("user_email");

@@ -38,13 +38,14 @@ public class SelectGalleryOnDB extends AppCompatActivity {
     private ArrayList<Integer> select_num = new ArrayList<>();
     private ArrayList<Select_Image> select_images = new ArrayList<>();
     private String user_email;
+    private String ip = "13.124.13.185:8080";
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.selectcontact_item_on_db);
         user_email = getIntent().getStringExtra("user_email");
         try {
-            new JSONTaskGet().execute("http://143.248.38.46:8080/images/tag/All/" + user_email).get();
+            new JSONTaskGet().execute("http://" + ip + "/images/tag/All/" + user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

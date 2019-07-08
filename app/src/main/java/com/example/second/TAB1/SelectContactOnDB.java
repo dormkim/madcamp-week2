@@ -37,6 +37,7 @@ public class SelectContactOnDB extends AppCompatActivity {
     private ArrayList<ContactRecyclerItem> select_Data = new ArrayList<>();
     private ArrayList<Integer> select_num = new ArrayList<>();
     private String user_email;
+    private String ip = "13.124.13.185:8080";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +45,7 @@ public class SelectContactOnDB extends AppCompatActivity {
         setContentView(R.layout.selectcontact_item_on_db);
         user_email = getIntent().getStringExtra("user_email");
         try {
-            new JSONTaskGet().execute("http://143.248.38.46:8080/contacts/tag/All/" + user_email).get();
+            new JSONTaskGet().execute("http://" + ip + "/contacts/tag/All/" + user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
