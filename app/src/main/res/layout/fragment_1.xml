@@ -27,33 +27,8 @@
             app:fastscroll__bubbleColor="@color/colorAccent"
             app:fastscroll__handleColor="#D1D1D1"
             android:layout_marginBottom="30dp"
-            app:layout_constraintBottom_toBottomOf="@+id/fab"
             app:layout_constraintEnd_toEndOf="@+id/contact_recycler"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="@id/constraintLayout_1"
-            app:layout_constraintEnd_toEndOf="@id/constraintLayout_1"
-            app:srcCompat="@drawable/tab1_contact_add"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_change"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/res_margin"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="@id/constraintLayout_1"
-            app:layout_constraintStart_toStartOf="@id/constraintLayout_1"
-            app:srcCompat="@android:drawable/ic_menu_directions" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

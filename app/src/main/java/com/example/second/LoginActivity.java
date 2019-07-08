@@ -2,6 +2,7 @@ package com.example.second;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -28,7 +29,8 @@ public class LoginActivity extends AppCompatActivity implements ActivityCompat.O
     private LoginButton txtFbLogin;
     private AccessToken mAccessToken;
     private CallbackManager callbackManager;
-    private String user_email;
+    public String id;
+    public String user_name;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,31 +56,23 @@ public class LoginActivity extends AppCompatActivity implements ActivityCompat.O
     }
 
     private void getUserProfile(AccessToken currentAccessToken) {
-        GraphRequest request = GraphRequest.newMeRequest(
-                currentAccessToken,
+        GraphRequest request = GraphRequest.newMeRequest(currentAccessToken,
                 new GraphRequest.GraphJSONObjectCallback() {
-
                     @Override public void onCompleted(JSONObject object, GraphResponse  response) {
-                        try {
-                            //You can fetch user info like this…
-                            //object.getJSONObject(“picture”).
-                            object.getJSONObject("data").getString("url");
-                            //object.getString(“name”);
-                            user_email = object.getString("email");
-                            //object.getString(“id”));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        //You can fetch user info like this…
+                        user_name = object.optString("name");
+                        id = object.optString("id");
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.putExtra("user_email", id);
+                        intent.putExtra("name", user_name);
+                        startActivity(intent);
+                        finish();
                     }
                 });
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id,name,email,picture.width(200)");
         request.setParameters(parameters);
         request.executeAsync();
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra("user_email", user_email);
-        startActivity(intent);
-        finish();
     }
     @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

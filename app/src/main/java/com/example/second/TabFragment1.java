@@ -14,10 +14,9 @@ import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -60,12 +59,71 @@ public class TabFragment1 extends Fragment{
     private String Tag = "All";
     private String user_email;
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_1, container, false);
         user_email = ((MainActivity)getActivity()).user_email;
+        setHasOptionsMenu(true);
         return view;
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        inflater.inflate(R.menu.actionbar_actions, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu){
+        super.onPrepareOptionsMenu(menu);
+
+        menu.findItem(R.id.action_logout).setVisible(true);
+        menu.findItem(R.id.action_addcontact).setVisible(true);
+        menu.findItem(R.id.action_refresh).setVisible(true);
+        menu.findItem(R.id.action_camera).setVisible(false);
+        menu.findItem(R.id.action_album).setVisible(false);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()) {
+            case R.id.action_logout:
+                Intent logoutintent = new Intent(getActivity(), LoginActivity.class);
+                startActivity(logoutintent);
+                getActivity().finish();
+                break;
+            case R.id.action_addcontact:
+                Intent addintent = new Intent(getActivity(), AddContact.class);
+                startActivityForResult(addintent, ADD_CONTACT);
+                break;
+            case R.id.action_refresh:
+                mCount++;
+                if(mCount == 1){
+                    now1 = System.currentTimeMillis();
+                }
+                if(mCount > 6) {
+                    now7 = System.currentTimeMillis();
+                    if ((now7 - now1) / 1000.0 < 5) {
+                        Intent intent = new Intent(getActivity(), SelectTag.class);
+                        intent.putExtra("mode", "contact");
+                        intent.putExtra("tagName", Tag);
+                        intent.putExtra("dbList", dbList);
+                        intent.putExtra("user_email", user_email);
+                        startActivityForResult(intent, SELECT_CONTACT);
+                    } else {
+                        mCount = 0;
+                    }
+                }
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
     @Override
     public void onResume(){
         super.onResume();
@@ -116,7 +174,7 @@ public class TabFragment1 extends Fragment{
         }
 
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler);
+        mRecyclerView = view.findViewById(R.id.contact_recycler);
         mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -124,43 +182,10 @@ public class TabFragment1 extends Fragment{
         mAdapter = new RecyclerImageTextAdapter(mMyData);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        FastScroller fastScroller = (FastScroller) view.findViewById(R.id.fastscroll);
+        FastScroller fastScroller = view.findViewById(R.id.fastscroll);
         fastScroller.setRecyclerView(mRecyclerView);
 
-        FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent addintent = new Intent(getActivity(), AddContact.class);
-                startActivityForResult(addintent, ADD_CONTACT);
-            }
-        });
-
         mCount = 0;
-        FloatingActionButton btn_change = view.findViewById(R.id.btn_change);
-        btn_change.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mCount++;
-                if(mCount == 1){
-                    now1 = System.currentTimeMillis();
-                }
-                if(mCount > 6){
-                    now7 = System.currentTimeMillis();
-                    if((now7 - now1)/1000.0 < 5) {
-                        Intent intent = new Intent(getActivity(), SelectTag.class);
-                        intent.putExtra("mode", "contact");
-                        intent.putExtra("tagName", Tag);
-                        intent.putExtra("dbList", dbList);
-                        intent.putExtra("user_email",user_email);
-                        startActivityForResult(intent, SELECT_CONTACT);
-                    }
-                    else{
-                        mCount = 0;
-                    }
-                }
-            }
-        });
 
         mAdapter.setOnItemClickListener(new RecyclerImageTextAdapter.OnItemClickListener() {
             @Override

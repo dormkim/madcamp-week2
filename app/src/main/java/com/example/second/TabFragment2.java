@@ -13,11 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -85,6 +81,7 @@ public class TabFragment2 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_2, container, false);
         user_email = ((MainActivity)getActivity()).user_email;
+        setHasOptionsMenu(true);
         return view;
     }
 
@@ -101,6 +98,63 @@ public class TabFragment2 extends Fragment {
         if (!storageDir.exists()) {
             storageDir.mkdir();
         }
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        inflater.inflate(R.menu.actionbar_actions, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu){
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.action_logout).setVisible(true);
+        menu.findItem(R.id.action_addcontact).setVisible(false);
+        menu.findItem(R.id.action_refresh).setVisible(true);
+        menu.findItem(R.id.action_camera).setVisible(true);
+        menu.findItem(R.id.action_album).setVisible(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()) {
+            case R.id.action_logout:
+                Intent logoutintent = new Intent(getActivity(), LoginActivity.class);
+                startActivity(logoutintent);
+                getActivity().finish();
+                break;
+            case R.id.action_camera:
+                takePhoto();
+                break;
+            case R.id.action_album:
+                goToAlbum();
+                break;
+            case R.id.action_refresh:
+                mCount++;
+                if(mCount == 1){
+                    now1 = System.currentTimeMillis();
+                }
+                if(mCount > 6){
+                    now7 = System.currentTimeMillis();
+                    if((now7 - now1)/1000.0 < 5) {
+                        Intent intent = new Intent(getActivity(), SelectTag.class);
+                        intent.putExtra("mode","gallery");
+                        intent.putExtra("tagName", Tag);
+                        intent.putExtra("dbList", dbList);
+                        intent.putExtra("user_email",user_email);
+                        startActivityForResult(intent, SELECT_GALLERY);
+                    }
+                    else{
+                        mCount = 0;
+                    }
+                }
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
     @Override
@@ -136,48 +190,7 @@ public class TabFragment2 extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        btnCamera = view.findViewById(R.id.btn_camera);
-        btnAlbum = view.findViewById(R.id.btn_album);
-        btnReset = view.findViewById(R.id.btn_reset);
-
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                takePhoto();
-            }
-        });
-        btnAlbum.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                goToAlbum();
-            }
-        });
-
         mCount = 0;
-        btnReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mCount++;
-                if(mCount == 1){
-                    now1 = System.currentTimeMillis();
-                }
-                if(mCount > 6){
-                    now7 = System.currentTimeMillis();
-                    if((now7 - now1)/1000.0 < 5) {
-                        Intent intent = new Intent(getActivity(), SelectTag.class);
-                        intent.putExtra("mode","gallery");
-                        intent.putExtra("tagName", Tag);
-                        intent.putExtra("dbList", dbList);
-                        intent.putExtra("user_email",user_email);
-                        startActivityForResult(intent, SELECT_GALLERY);
-                    }
-                    else{
-                        mCount = 0;
-                    }
-                }
-            }
-        });
-
 
         final GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()
         {
@@ -227,45 +240,47 @@ public class TabFragment2 extends Fragment {
         File fileDir = new File(GalleryDir);
         String[] imageFileNameArr = fileDir.list();
 
-        for(int i = 0; i < imageFileNameArr.length; i++){
-            AlbumRecyclerItem item = new AlbumRecyclerItem(GalleryDir + imageFileNameArr[i], imageFileNameArr[i]);
-            Bitmap bitmap = null;
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), Uri.fromFile(new File(GalleryDir + imageFileNameArr[i])));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if(imageFileNameArr != null) {
+            for (int i = 0; i < imageFileNameArr.length; i++) {
+                AlbumRecyclerItem item = new AlbumRecyclerItem(GalleryDir + imageFileNameArr[i], imageFileNameArr[i]);
+                Bitmap bitmap = null;
+                try {
+                    bitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), Uri.fromFile(new File(GalleryDir + imageFileNameArr[i])));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            ExifInterface exif = null;
-            try {
-                exif = new ExifInterface(GalleryDir + imageFileNameArr[i]);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                ExifInterface exif = null;
+                try {
+                    exif = new ExifInterface(GalleryDir + imageFileNameArr[i]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            int exifOrientation;
-            int exifDegree = 0;
+                int exifOrientation;
+                int exifDegree = 0;
 
-            if (exif != null) {
-                exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-                exifDegree = exifOrientationToDegrees(exifOrientation);
-            }
+                if (exif != null) {
+                    exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                    exifDegree = exifOrientationToDegrees(exifOrientation);
+                }
 
-            Bitmap rotate_bitmap = rotate(bitmap, exifDegree);
-            File savepath = new File(GalleryDir + imageFileNameArr[i]);
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(savepath);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Bitmap rotate_bitmap = rotate(bitmap, exifDegree);
+                File savepath = new File(GalleryDir + imageFileNameArr[i]);
+                FileOutputStream fos = null;
+                try {
+                    fos = new FileOutputStream(savepath);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                rotate_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mMyData.add(item);
             }
-            rotate_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mMyData.add(item);
         }
     }
 
@@ -330,13 +345,14 @@ public class TabFragment2 extends Fragment {
                                 exifDegree = exifOrientationToDegrees(exifOrientation);
                             }
 
+                            String[] fileName = path.split("/");
                             Bitmap rotate_bitmap = rotate(bitmap, exifDegree);
-                            File savepath = new File(path);
+                            File savepath = new File(getDirectoryPath() + fileName[fileName.length - 1]);
                             FileOutputStream fos = new FileOutputStream(savepath);
                             rotate_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                             fos.close();
 
-                            gallery_update(true, path);
+                            gallery_update(true, getDirectoryPath() + fileName[fileName.length - 1]);
                             mAdapter.notifyDataSetChanged();
                         }
                     }catch (IOException e) {
@@ -832,13 +848,6 @@ public class TabFragment2 extends Fragment {
                     btn_delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            try {
-                                getDelete(getPath, position);
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
                             //DB에서도 삭제
                             try {
                                 getDelete(getPath, position);
