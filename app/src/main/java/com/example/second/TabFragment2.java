@@ -55,10 +55,6 @@ public class TabFragment2 extends Fragment {
     private Button btn_check;
     private String ip = "13.124.13.185:8080";
 
-    FloatingActionButton btnCamera;
-    FloatingActionButton btnAlbum;
-    FloatingActionButton btnReset;
-
     private static final int PICK_FROM_CAMERA = 1;
     private static final int PICK_FROM_ALBUM = 2;
     private static final int SELECT_GALLERY = 3;
@@ -207,9 +203,6 @@ public class TabFragment2 extends Fragment {
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
                 View child = mRecyclerView.findChildViewUnder(e.getX(), e.getY());
                 if(child!=null && gestureDetector.onTouchEvent(e)){
-                    btnAlbum.hide();
-                    btnCamera.hide();
-                    btnReset.hide();
                     /*터치하고 뗐을때*/
                     int position = mRecyclerView.getChildLayoutPosition(child);
                     getInfo(position);
@@ -470,10 +463,10 @@ public class TabFragment2 extends Fragment {
 
             JSONObject Obj = new JSONObject();
             try {
-                Obj.put("title", item.getPhoto_id());
                 Obj.put("photo", str);
                 Obj.put("email",user_email);
                 Obj.put("tag",Tag);
+                Obj.put("title", item.getPhoto_id());
                 add_image = Obj;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -483,10 +476,10 @@ public class TabFragment2 extends Fragment {
             if(Tag != "All"){
                 JSONObject sObj = new JSONObject();
                 try {
-                    sObj.put("title", item.getPhoto_id());
                     sObj.put("photo", str);
                     sObj.put("email",user_email);
                     sObj.put("tag","All");
+                    sObj.put("title", item.getPhoto_id());
                     add_image = sObj;
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -512,8 +505,8 @@ public class TabFragment2 extends Fragment {
             String str = Base64.encode(bitmapdata);
 
             JSONObject sObj = new JSONObject();
-            sObj.put("title", mMyData.get(i).getPhoto_id());
             sObj.put("photo", str);
+            sObj.put("title", mMyData.get(i).getPhoto_id());
             sObj.put("email",user_email);
             sObj.put("tag", dbTag);
             jArray.put(sObj);
@@ -860,9 +853,6 @@ public class TabFragment2 extends Fragment {
                             imageView.setVisibility(View.GONE);
                             btn_back.setVisibility(View.GONE);
                             btn_delete.setVisibility(View.GONE);
-                            btnAlbum.show();
-                            btnCamera.show();
-                            btnReset.show();
                         }
                     });
                 }
@@ -875,9 +865,6 @@ public class TabFragment2 extends Fragment {
                 imageView.setVisibility(View.GONE);
                 btn_back.setVisibility(View.GONE);
                 btn_delete.setVisibility(View.GONE);
-                btnAlbum.show();
-                btnCamera.show();
-                btnReset.show();
             }
         });
     }
@@ -888,7 +875,7 @@ public class TabFragment2 extends Fragment {
         file.delete();
         mCurrentPath = getPath;
         gallery_update(false, getPath);
-        new JSONTaskDeleteObj().execute("http://" + ip + "/images/title/" + mMyData.get(position).getPhoto_id() + "/tag/" + Tag + "/" + user_email).get();
+        new JSONTaskDeleteObj().execute("http://" + ip + "/images/tag/" + Tag + "/title/" + mMyData.get(position).getPhoto_id() + "/" + user_email).get();
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
         Toast.makeText(getContext(),"사진 삭제 완료", Toast.LENGTH_SHORT).show();

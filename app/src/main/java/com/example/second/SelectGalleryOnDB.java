@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import org.bson.internal.Base64;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
@@ -37,10 +39,12 @@ public class SelectGalleryOnDB extends AppCompatActivity {
     private ListViewAdapter listViewAdapter = null;
     private TextView selected_item_textview;
     private ArrayList<AlbumRecyclerItem> select_Data = new ArrayList<>();
-    private ArrayList<Integer> select_num = new ArrayList<>();
+    private ArrayList<String> select_num = new ArrayList<>();
     private String user_email;
     private String ip = "13.124.13.185:8080";
     ArrayList<Select_Image> select_images = new ArrayList<>();
+    //리스트뷰와 리스트를 연결하기 위해 사용되는 어댑터
+    ListViewAdapter adapter = new ListViewAdapter();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -55,12 +59,10 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        final ListView listview = findViewById(R.id.listview);
         selected_item_textview = findViewById(R.id.selected_item_textview);
         Button btn_check = findViewById(R.id.btn_check);
 
-        //리스트뷰와 리스트를 연결하기 위해 사용되는 어댑터
-        ListViewAdapter adapter = new ListViewAdapter();
+        adapter = new ListViewAdapter();
 
         for (int i = 0; i < select_Data.size(); i++) {
             String icon = select_Data.get(i).getitemPath();
@@ -68,8 +70,10 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             bo.inSampleSize = 4;
             Bitmap bitmap = BitmapFactory.decodeFile(icon, bo);
             Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-            adapter.add(drawable, select_Data.get(i).getPhoto_id());
+            adapter.add(drawable, select_Data.get(i).getPhoto_id(), false);
         }
+
+        final ListView listview = findViewById(R.id.listview);
 
         //리스트뷰의 어댑터를 지정해준다.
         listview.setAdapter(adapter);
@@ -79,9 +83,7 @@ public class SelectGalleryOnDB extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if(!select_num.contains(i)){
-                    select_num.add(i);
-                }
+
             }
         });
 
@@ -89,10 +91,9 @@ public class SelectGalleryOnDB extends AppCompatActivity {
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Collections.sort(select_num);
                 for(int i = 0; i < select_num.size(); i++){
                     BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                    Bitmap bitmap = BitmapFactory.decodeFile(select_Data.get(select_num.get(i)).getitemPath(), bmOptions);
+                    Bitmap bitmap = BitmapFactory.decodeFile(select_Data.get(Integer.parseInt(select_num.get(i))).getitemPath(), bmOptions);
                     select_images.add(new Select_Image(bitmap, select_Data.get(i).getitemPath()));
                 }
                 try {
@@ -120,7 +121,8 @@ public class SelectGalleryOnDB extends AppCompatActivity {
 
         // position에 위치한 데이터를 화면에 출력하는데 사용될 View를 리턴. : 필수 구현
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
+
             final int pos = position;
             final Context context = parent.getContext();
 
@@ -131,16 +133,32 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             }
 
             // 화면에 표시될 View(Layout이 inflate된)으로부터 위젯에 대한 참조 획득
-            ImageView iconImageView = convertView.findViewById(R.id.image) ;
-            TextView titleTextView = convertView.findViewById(R.id.image_name) ;
+            ImageView iconImageView = convertView.findViewById(R.id.image);
+            TextView titleTextView = convertView.findViewById(R.id.image_name);
+            final CheckBox cb = convertView.findViewById(R.id.checkbox);
 
             // Data Set(listViewItemList)에서 position에 위치한 데이터 참조 획득
-            ImageListView listViewItem = listViewItemList.get(position);
+            final ImageListView listViewItem = listViewItemList.get(position);
 
             // 아이템 내 각 위젯에 데이터 반영
             iconImageView.setImageDrawable(listViewItem.getIcon());
             titleTextView.setText(listViewItem.getName());
 
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    cb.setChecked(!cb.isChecked());
+                    listViewItem.setSelected(cb.isChecked());
+                    if(cb.isChecked()){
+                        select_num.add(Integer.toString(position));
+                    }
+                    else{
+                        if(select_num.contains(Integer.toString(position))){
+                            select_num.remove(Integer.toString(position));
+                        }
+                    }
+                }
+            });
             return convertView;
         }
 
@@ -157,9 +175,8 @@ public class SelectGalleryOnDB extends AppCompatActivity {
         }
 
         // 아이템 데이터 추가를 위한 함수. 개발자가 원하는대로 작성 가능.
-        public void add(Drawable icon, String title) {
-            ImageListView item = new ImageListView(null, null);
-
+        public void add(Drawable icon, String title, boolean checked) {
+            ImageListView item = new ImageListView(null, null, checked);
             item.setIcon(icon);
             item.setName(title);
 
@@ -303,4 +320,5 @@ public class SelectGalleryOnDB extends AppCompatActivity {
             this.filepath = filepath;
         }
     }
+
 }

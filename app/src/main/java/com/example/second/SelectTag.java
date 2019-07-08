@@ -2,6 +2,7 @@ package com.example.second;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -109,24 +110,26 @@ public class SelectTag extends AppCompatActivity {
         btn_check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!addList.contains(Tagname) || original_Tagname.equals(Tagname)){
-                    Intent intent = new Intent();
-                    intent.putExtra("Tagname", Tagname);
-                    intent.putExtra("deleteList", deleteList);
-                    setResult(RESULT_OK, intent);
-                    finish();
-                }
-                else if(Tagname != null){
-                    String mode = getIntent().getStringExtra("mode");
-                    if(mode.equals("contact")){
-                        Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
-                        selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
-                        startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
-                    }
-                    else if(mode.equals("gallery")){
-                        Intent selectIntent = new Intent(getApplicationContext(), SelectGalleryOnDB.class);
-                        selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
-                        startActivityForResult(selectIntent, SELECT_GALLERY_ON_DB);
+                if(Tagname != null) {
+                    if (!addList.contains(Tagname) || original_Tagname.equals(Tagname)) {
+                        Intent intent = new Intent();
+                        intent.putExtra("Tagname", Tagname);
+                        intent.putExtra("deleteList", deleteList);
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    } else if (Tagname != null) {
+                        String mode = getIntent().getStringExtra("mode");
+                        if (mode.equals("contact")) {
+                            Intent selectIntent = new Intent(getApplicationContext(), SelectContactOnDB.class);
+                            selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
+                            startActivityForResult(selectIntent, SELECT_CONTACT_ON_DB);
+                        } else if (mode.equals("gallery")) {
+                            Intent selectIntent = new Intent(getApplicationContext(), SelectGalleryOnDB.class);
+                            selectIntent.putExtra("user_email", getIntent().getStringExtra("user_email"));
+                            startActivityForResult(selectIntent, SELECT_GALLERY_ON_DB);
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "항목을 선택하세요", Toast.LENGTH_SHORT).show();
                     }
                 }
                 else{
@@ -147,7 +150,14 @@ public class SelectTag extends AppCompatActivity {
 
     public void tagDelete(){
         try {
-            new JSONTaskDeleteObj().execute("http://" + ip + "/contacts/tag/"+Tagname+"/"+user_email).get();
+            String dbname = null;
+            String mode = getIntent().getStringExtra("mode");
+            if (mode.equals("contact")) {
+                dbname = "contacts";
+            } else if (mode.equals("gallery")) {
+                dbname = "images";
+            }
+            new JSONTaskDeleteObj().execute("http://" + ip + "/" + dbname +"/tag/"+Tagname+"/"+user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
