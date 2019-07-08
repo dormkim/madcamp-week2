@@ -31,6 +31,7 @@ public class SelectTag extends AppCompatActivity {
     private TextView selected_item_textview;
     private int SELECT_CONTACT_ON_DB = 4;
     private int SELECT_GALLERY_ON_DB = 5;
+    private String ip = "13.124.13.185:8080";
 
     private String user_email;
 
@@ -146,7 +147,7 @@ public class SelectTag extends AppCompatActivity {
 
     public void tagDelete(){
         try {
-            new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/contacts/tag/" + Tagname + "/" + user_email).get();
+            new JSONTaskDeleteObj().execute("http://" + ip + "/contacts/tag/"+Tagname+"/"+user_email).get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

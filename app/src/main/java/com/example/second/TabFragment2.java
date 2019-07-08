@@ -53,6 +53,7 @@ public class TabFragment2 extends Fragment {
     private Button btn_back;
     private Button btn_delete;
     private Button btn_check;
+    private String ip = "13.124.13.185:8080";
 
     FloatingActionButton btnCamera;
     FloatingActionButton btnAlbum;
@@ -173,7 +174,7 @@ public class TabFragment2 extends Fragment {
                 e.printStackTrace();
             }
             try {
-                new JSONTaskPostArr().execute("http://143.248.38.46:8080/images/initialize").get();
+                new JSONTaskPostArr().execute("http://" + ip + "/images/initialize").get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
@@ -434,7 +435,7 @@ public class TabFragment2 extends Fragment {
                             e.printStackTrace();
                         }
                         try {
-                            new JSONTaskGet().execute("http://143.248.38.46:8080/images/tag/" + dbTag + "/" +user_email).get();
+                            new JSONTaskGet().execute("http://" + ip + "/images/tag/" + dbTag + "/" +user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -477,7 +478,7 @@ public class TabFragment2 extends Fragment {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            new JSONTaskPostObj().execute("http://143.248.38.46:8080/images").get();
+            new JSONTaskPostObj().execute("http://" + ip + "/images").get();
 
             if(Tag != "All"){
                 JSONObject sObj = new JSONObject();
@@ -490,7 +491,7 @@ public class TabFragment2 extends Fragment {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                new JSONTaskPostObj().execute("http://143.248.38.46:8080/images").get();
+                new JSONTaskPostObj().execute("http://" + ip + "/images").get();
             }
         }
     }
@@ -887,7 +888,7 @@ public class TabFragment2 extends Fragment {
         file.delete();
         mCurrentPath = getPath;
         gallery_update(false, getPath);
-        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/images/title/" + mMyData.get(position).getPhoto_id() + "/tag/" + Tag + "/" + user_email).get();
+        new JSONTaskDeleteObj().execute("http://" + ip + "/images/title/" + mMyData.get(position).getPhoto_id() + "/tag/" + Tag + "/" + user_email).get();
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
         Toast.makeText(getContext(),"사진 삭제 완료", Toast.LENGTH_SHORT).show();

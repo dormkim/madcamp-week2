@@ -59,6 +59,8 @@ public class TabFragment1 extends Fragment{
     private String Tag = "All";
     private String user_email;
 
+    private String ip = "13.124.13.185:8080";
+
 
 
     @Override
@@ -139,7 +141,7 @@ public class TabFragment1 extends Fragment{
                         e.printStackTrace();
                     }
                     try {
-                        new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag + "/" + user_email).get();
+                        new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag + "/" + user_email).get();
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
@@ -147,7 +149,7 @@ public class TabFragment1 extends Fragment{
                     }
                     if(!Tag.equals("All")){
                         try {
-                            new JSONTaskUpdateObj().execute("http://143.248.38.46:8080/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All/" + user_email).get();
+                            new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All/" + user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -165,7 +167,7 @@ public class TabFragment1 extends Fragment{
                 e.printStackTrace();
             }
             try {
-                new JSONTaskPostArr().execute("http://143.248.38.46:8080/contacts/initialize").get();
+                new JSONTaskPostArr().execute("http://" + ip + "/contacts/initialize").get();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -250,7 +252,7 @@ public class TabFragment1 extends Fragment{
                     if(dbList.contains(dbTag)){
                         setContacts();
                         try {
-                            new JSONTaskGet().execute("http://143.248.38.46:8080/contacts/tag/"+dbTag + "/" + user_email).get();
+                            new JSONTaskGet().execute("http://" + ip + "/contacts/tag/"+dbTag + "/" + user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -284,7 +286,7 @@ public class TabFragment1 extends Fragment{
         sObj.put("tag", Tag);
         add_Contact = sObj;
         try {
-            new JSONTaskPostObj().execute("http://143.248.38.46:8080/contacts").get();
+            new JSONTaskPostObj().execute("http://" + ip + "/contacts").get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -301,7 +303,7 @@ public class TabFragment1 extends Fragment{
             Obj.put("tag", "All");
             add_Contact = Obj;
             try {
-                new JSONTaskPostObj().execute("http://143.248.38.46:8080/contacts").get();
+                new JSONTaskPostObj().execute("http://" + ip + "/contacts").get();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -312,7 +314,7 @@ public class TabFragment1 extends Fragment{
 
     //Delete Contact 하고 DB에서 지움
     public void removeContact(View v, int position) {
-        new JSONTaskDeleteObj().execute("http://143.248.38.46:8080/contacts/tag/"+Tag+"/phonenumber/"+mMyData.get(position).getPhone() + "/" + user_email);
+        new JSONTaskDeleteObj().execute("http://" + ip + "/contacts/tag/"+Tag+"/phonenumber/"+mMyData.get(position).getPhone() + "/" + user_email);
         v.getContext().getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI, ContactsContract.RawContacts.CONTACT_ID + "=" + mMyData.get(position).getContactId(), null);
         mMyData.remove(position);
         mAdapter.notifyItemRemoved(position);
