@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -53,6 +51,8 @@ public class TabFragment4 extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate (R.layout.fragment_4, container, false);
+
+        setHasOptionsMenu(true);
 
         button1 = view.findViewById(R.id.button1);
         button2 = view.findViewById(R.id.button2);
@@ -134,6 +134,25 @@ public class TabFragment4 extends Fragment {
 
         return view;
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        inflater.inflate(R.menu.actionbar_actions, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu){
+        super.onPrepareOptionsMenu(menu);
+
+        menu.findItem(R.id.action_logout).setVisible(true);
+        menu.findItem(R.id.action_addcontact).setVisible(false);
+        menu.findItem(R.id.action_refresh).setVisible(true);
+        menu.findItem(R.id.action_camera).setVisible(false);
+        menu.findItem(R.id.action_album).setVisible(false);
+
+    }
+
     private void setProgressValue (final int progress) { simpleProgressBar.setProgress(progress);}
     private void scanFile(String path){
         MediaScannerConnection.scanFile(getContext(), new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
