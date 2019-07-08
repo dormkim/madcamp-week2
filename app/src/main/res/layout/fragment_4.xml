@@ -4,9 +4,8 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:gravity="center"
               android:orientation="vertical"
-              android:background="#F1EBC2">
+              android:background="#FFFFFF">
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -24,67 +23,57 @@
                 android:id="@+id/button1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="24dp"
-                android:text="Background"
+                android:layout_marginEnd="8dp"
+                android:text="ChooseImage1"
                 app:layout_constraintEnd_toStartOf="@+id/button2"
-                app:layout_constraintStart_toStartOf="@+id/simpleProgressBar"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
         <Button
                 android:id="@+id/button2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:text="Secret"
+                android:layout_marginEnd="8dp"
+                android:text="ChooseImage2"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_bias="0.534"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-                android:id="@+id/imageView1"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_marginStart="28dp"
-                android:layout_marginTop="24dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button2"
-                tools:srcCompat="@tools:sample/avatars" />
 
         <ImageView
                 android:id="@+id/imageView2"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:layout_marginStart="44dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/imageView1"
                 app:layout_constraintTop_toBottomOf="@+id/button2"
                 tools:srcCompat="@tools:sample/avatars" />
 
         <ImageView
                 android:id="@+id/imageView3"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="36dp"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageView1"
+                app:layout_constraintTop_toBottomOf="@+id/imageView2"
                 tools:srcCompat="@tools:sample/avatars" />
 
         <Button
                 android:id="@+id/button3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="24dp"
-                android:text="Encrypt"
-                app:layout_constraintEnd_toEndOf="@+id/simpleProgressBar"
+                android:layout_marginEnd="8dp"
+                android:text="Decrypt"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/button2"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -95,7 +84,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="40dp"
+                android:layout_marginBottom="24dp"
                 android:text="Save"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -103,15 +92,14 @@
                 app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
         <ImageView
-                android:id="@+id/imageView4"
+                android:id="@+id/imageView1"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:layout_marginStart="44dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="24dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/imageView3"
-                app:layout_constraintTop_toBottomOf="@+id/imageView2"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="32dp"
+                app:layout_constraintEnd_toStartOf="@+id/imageView2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/imageView2"
                 tools:srcCompat="@tools:sample/avatars" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
