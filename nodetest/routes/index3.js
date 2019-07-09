@@ -3,7 +3,7 @@
 module.exports = function(app, Id)
 {
     app.post('/ids', function(req, res){
-      var id = new Id(
+      var id = new Id();
       id.id = req.body.id;
 
       id.save(function(err){
