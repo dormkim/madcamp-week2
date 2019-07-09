@@ -58,15 +58,32 @@ public class TabFragment1 extends Fragment{
     private static final int SELECT_CONTACT = 2;
     private String Tag = "All";
     private String user_email;
+    private Boolean db_exist;
 
     private String ip = "13.124.13.185:8080";
 
 
-
+    //DB에서 다 받아오고 연락처 리셋.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_1, container, false);
         user_email = ((MainActivity)getActivity()).user_email;
+        db_exist = ((MainActivity)getActivity()).db_exist;
+
+        if(db_exist){
+            setContacts();
+            try {
+                new JSONTaskGet().execute("http://" + ip + "/contacts/tag/All/" + user_email).get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            for(int i = 0; i < mMyData.size(); i++){
+                addtoContacts(mMyData.get(i).getName(), mMyData.get(i).getPhone(), mMyData.get(i).getIcon());
+            }
+        }
+
         setHasOptionsMenu(true);
         return view;
     }
@@ -129,49 +146,51 @@ public class TabFragment1 extends Fragment{
     @Override
     public void onResume(){
         super.onResume();
-        mMyData = getContactList();
-        if(add_phone!=null) {
-            for (int i = 0; i < mMyData.size(); i++) {
-                if (mMyData.get(i).getName().equals(add_name) && mMyData.get(i).getPhone().equals(add_phone)) {
-                    try {
-                        JSONObject sObj = new JSONObject();
-                        sObj.put("contact_id", mMyData.get(i).getContactId());
-                        update_Contact = sObj;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag + "/" + user_email).get();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if(!Tag.equals("All")){
+        if(!db_exist) {
+            mMyData = getContactList();
+            if (add_phone != null) {
+                for (int i = 0; i < mMyData.size(); i++) {
+                    if (mMyData.get(i).getName().equals(add_name) && mMyData.get(i).getPhone().equals(add_phone)) {
                         try {
-                            new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All/" + user_email).get();
+                            JSONObject sObj = new JSONObject();
+                            sObj.put("contact_id", mMyData.get(i).getContactId());
+                            update_Contact = sObj;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/" + Tag + "/" + user_email).get();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                        if (!Tag.equals("All")) {
+                            try {
+                                new JSONTaskUpdateObj().execute("http://" + ip + "/contacts/update/name/" + add_name + "/phonenumber/" + add_phone + "/tag/All/" + user_email).get();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
             }
-        }
-        if (!dbList.contains(Tag)) {
-            dbList.add(Tag);
-            try {
-                all_contact = ArrListToJArr(mMyData, Tag);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                new JSONTaskPostArr().execute("http://" + ip + "/contacts/initialize").get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (!dbList.contains(Tag)) {
+                dbList.add(Tag);
+                try {
+                    all_contact = ArrListToJArr(mMyData, Tag);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    new JSONTaskPostArr().execute("http://" + ip + "/contacts/initialize").get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

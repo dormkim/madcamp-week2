@@ -71,6 +71,7 @@ public class TabFragment2 extends Fragment {
 
     private String Tag = "All";
     private String user_email;
+    private Boolean db_exist;
 
     private ArrayList<String> dbList = new ArrayList<>();
 
@@ -78,6 +79,23 @@ public class TabFragment2 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_2, container, false);
         user_email = ((MainActivity)getActivity()).user_email;
+        db_exist = ((MainActivity)getActivity()).db_exist;
+        if(db_exist){
+            try {
+                resetGallery();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                new JSONTaskGet().execute("http://" + ip + "/images/tag/All/" + user_email).get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         setHasOptionsMenu(true);
         return view;
     }
@@ -157,24 +175,26 @@ public class TabFragment2 extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        //갤러리의 사진을 갤러리 아이템에 저장 이 리스트를 array로 만들어 Tag를 붙여 보냄.
-        initDataset();
-        //dbList에 없을 때 서버에 보냄.
-        if(!dbList.contains(Tag)){
-            dbList.add(Tag);
-            try {
-                all_images = ArrListToJArr(mMyData, Tag);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                new JSONTaskPostArr().execute("http://" + ip + "/images/initialize").get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+        if(!db_exist){
+            //갤러리의 사진을 갤러리 아이템에 저장 이 리스트를 array로 만들어 Tag를 붙여 보냄.
+            initDataset();
+            //dbList에 없을 때 서버에 보냄.
+            if(!dbList.contains(Tag)) {
+                dbList.add(Tag);
+                try {
+                    all_images = ArrListToJArr(mMyData, Tag);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    new JSONTaskPostArr().execute("http://" + ip + "/images/initialize").get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
         }
         mRecyclerView = view.findViewById(R.id.album_recycler);
