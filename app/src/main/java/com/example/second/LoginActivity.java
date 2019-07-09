@@ -37,12 +37,21 @@ public class LoginActivity extends AppCompatActivity implements ActivityCompat.O
     public String id;
     public String user_name;
     private JSONObject add_id;
-    private boolean db_exist = false;
+    private String db_exist = "YES";
     private String ip = "13.124.13.185:8080";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_page);
+
+        try {
+            new JSONTaskGet().execute("http://" + ip + "/ids").get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         try { PackageInfo info = getPackageManager().getPackageInfo("com.example.second", PackageManager.GET_SIGNATURES); for (Signature signature : info.signatures) { MessageDigest md = MessageDigest.getInstance("SHA"); md.update(signature.toByteArray()); String str = Base64.encodeToString(md.digest(), Base64.DEFAULT); Log.d("KeyHash:", str); Toast.makeText(this, str, Toast.LENGTH_LONG).show(); } }catch(NoSuchAlgorithmException e){ e.printStackTrace(); }catch (PackageManager.NameNotFoundException e){ e.printStackTrace(); }
 
         txtFbLogin = findViewById(R.id.login_button);
@@ -51,14 +60,6 @@ public class LoginActivity extends AppCompatActivity implements ActivityCompat.O
         txtFbLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
 
             @Override public void onSuccess(LoginResult loginResult) {
-
-                try {
-                    new JSONTaskGet().execute("http://" + ip + "/ids").get();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 mAccessToken = loginResult.getAccessToken();
                 getUserProfile(mAccessToken);
             }
@@ -94,7 +95,7 @@ public class LoginActivity extends AppCompatActivity implements ActivityCompat.O
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            db_exist = true;
+                            db_exist = "NO";
                         }
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.putExtra("user_email", id);

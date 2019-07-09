@@ -58,7 +58,7 @@ public class TabFragment1 extends Fragment{
     private static final int SELECT_CONTACT = 2;
     private String Tag = "All";
     private String user_email;
-    private Boolean db_exist;
+    private String db_exist;
 
     private String ip = "13.124.13.185:8080";
 
@@ -70,7 +70,8 @@ public class TabFragment1 extends Fragment{
         user_email = ((MainActivity)getActivity()).user_email;
         db_exist = ((MainActivity)getActivity()).db_exist;
 
-        if(db_exist){
+        if(db_exist.equals("YES")){
+            mMyData = getContactList();
             setContacts();
             try {
                 new JSONTaskGet().execute("http://" + ip + "/contacts/tag/All/" + user_email).get();
@@ -146,7 +147,7 @@ public class TabFragment1 extends Fragment{
     @Override
     public void onResume(){
         super.onResume();
-        if(!db_exist) {
+        if(db_exist.equals("NO")) {
             mMyData = getContactList();
             if (add_phone != null) {
                 for (int i = 0; i < mMyData.size(); i++) {

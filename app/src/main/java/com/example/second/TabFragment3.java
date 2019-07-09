@@ -182,6 +182,20 @@ public class TabFragment3 extends Fragment {
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()) {
+            case R.id.action_logout:
+                Intent logoutintent = new Intent(getActivity(), LoginActivity.class);
+                startActivity(logoutintent);
+                getActivity().finish();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
     private void scanFile(String path) {
         MediaScannerConnection.scanFile(getContext(), new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
             @Override

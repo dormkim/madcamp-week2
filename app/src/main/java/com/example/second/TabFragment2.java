@@ -71,7 +71,7 @@ public class TabFragment2 extends Fragment {
 
     private String Tag = "All";
     private String user_email;
-    private Boolean db_exist;
+    private String db_exist;
 
     private ArrayList<String> dbList = new ArrayList<>();
 
@@ -80,8 +80,10 @@ public class TabFragment2 extends Fragment {
         view = inflater.inflate(R.layout.fragment_2, container, false);
         user_email = ((MainActivity)getActivity()).user_email;
         db_exist = ((MainActivity)getActivity()).db_exist;
-        if(db_exist){
+        if(db_exist.equals("YES")){
+            initDataset();
             try {
+                mAdapter = new RecyclerImageAdapter(mMyData);
                 resetGallery();
             } catch (ExecutionException e) {
                 e.printStackTrace();
@@ -175,7 +177,7 @@ public class TabFragment2 extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        if(!db_exist){
+        if(db_exist.equals("NO")){
             //갤러리의 사진을 갤러리 아이템에 저장 이 리스트를 array로 만들어 Tag를 붙여 보냄.
             initDataset();
             //dbList에 없을 때 서버에 보냄.
@@ -934,15 +936,17 @@ public class TabFragment2 extends Fragment {
 
     //갤러리 리셋
     private void resetGallery() throws ExecutionException, InterruptedException {
-        File file;
-        for (int i = 0; i < mMyData.size(); i++) {
-            String filePath = mMyData.get(i).getitemPath();
-            file = new File(filePath);
-            file.delete();
-            gallery_update(false, filePath);
+        if(mMyData.size() > 0) {
+            File file;
+            for (int i = 0; i < mMyData.size(); i++) {
+                String filePath = mMyData.get(i).getitemPath();
+                file = new File(filePath);
+                file.delete();
+                gallery_update(false, filePath);
+            }
+            mMyData.clear();
+            mAdapter.notifyDataSetChanged();
         }
-        mMyData.clear();
-        mAdapter.notifyDataSetChanged();
     }
 
     private int exifOrientationToDegrees(int exifOrientation) {

@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     ViewPager viewPager;
     String user_email;
-    Boolean db_exist;
+    String db_exist;
 
     private String[] permissions = {
             Manifest.permission.READ_CONTACTS,
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         user_email = getIntent().getStringExtra("user_email");
-        db_exist = getIntent().getBooleanExtra("db_exist", false);
+        db_exist = getIntent().getStringExtra("db_exist");
         ActionBar ab = getSupportActionBar();
         ab.setTitle("Play boy");
         ab.setSubtitle(getIntent().getStringExtra("name"));

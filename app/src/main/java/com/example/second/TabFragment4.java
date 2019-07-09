@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.example.second.R;
+import com.example.second.TAB1.AddContact;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -151,6 +152,20 @@ public class TabFragment4 extends Fragment {
         menu.findItem(R.id.action_camera).setVisible(false);
         menu.findItem(R.id.action_album).setVisible(false);
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()) {
+            case R.id.action_logout:
+                Intent logoutintent = new Intent(getActivity(), LoginActivity.class);
+                startActivity(logoutintent);
+                getActivity().finish();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
     private void setProgressValue (final int progress) { simpleProgressBar.setProgress(progress);}
